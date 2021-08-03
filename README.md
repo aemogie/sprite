@@ -13,4 +13,4 @@ this... is the 3rd game engine i create with the same name. hopefully this is go
 1. :negative_squared_cross_mark: --
 
 ## engine.
-1. :negative_squared_cross_mark: --
+1. :white_check_mark: primitive class. (still in `gl.`)
