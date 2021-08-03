@@ -1,7 +1,5 @@
 import org.gradle.internal.os.OperatingSystem
 
-version = "0.1.0-SNAPSHOT-01"
-
 @Suppress("INACCESSIBLE_TYPE")
 val lwjglNatives = when (OperatingSystem.current()) {
 	OperatingSystem.LINUX   -> System.getProperty("os.arch").let {
@@ -21,7 +19,7 @@ val lwjglNatives = when (OperatingSystem.current()) {
 }
 
 dependencies {
-	api(project(":utils"))
+	implementation(project(":utils"))
 	//region LWJGL
 	implementation(platform("org.lwjgl:lwjgl-bom:3.2.3"))
 	implementation("org.lwjgl:lwjgl:3.2.3")

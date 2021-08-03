@@ -3,6 +3,7 @@ plugins {
 }
 
 group = "io.github.aemogie.timble"
+version = "0.1.0"
 
 subprojects {
 	apply {
@@ -10,7 +11,8 @@ subprojects {
 	}
 	
 	group = rootProject.group
-	println(name)
+	version = rootProject.version
+	
 	repositories {
 		mavenCentral()
 	}
@@ -22,4 +24,5 @@ subprojects {
 	tasks.test {
 		useJUnitPlatform()
 	}
+	println("$group:$name:$version")
 }
