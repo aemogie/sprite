@@ -5,11 +5,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonStreamParser;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -64,21 +69,30 @@ public class Logger {
 		;
 		public int PRIORITY;
 		public int COLOUR;
+		
 		Level(int PRIORITY, int COLOUR) {
 			this.PRIORITY = PRIORITY;
 			this.COLOUR = COLOUR;
 		}
 		
 	}
+	
 	abstract static class LoggerOutputStream extends OutputStream {
 		
-		public void write(int b) {print(new String(new byte[]{(byte) b}));}
-		public void write(byte @NotNull [] b) {print(new String(b).substring(0, b.length - 1));}
+		public void write(int b) {
+			print(new String(new byte[]{(byte) b}));
+		}
+		
+		public void write(byte @NotNull [] b) {
+			print(new String(b).substring(0, b.length - 1));
+		}
+		
 		public void write(byte @NotNull [] b, int off, int len) {
 			byte[] newB = new byte[len];
 			System.arraycopy(b, off, newB, 0, len);
 			print(new String(newB).substring(0, len - 1));
 		}
+		
 		protected abstract boolean print(String msg);
 	}
 	public boolean safeError(String msg) {

@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-import static io.github.aemogie.timble.utils.Annotations.*;
+import static io.github.aemogie.timble.utils.Annotations.Relative;
 
 public class FileLoggerOutput extends LoggerOutput {
 	private final String PATH;
@@ -31,9 +31,9 @@ public class FileLoggerOutput extends LoggerOutput {
 	}
 	
 	@Override
-	protected boolean print(String msg) {
+	protected boolean print(String[] msg) {
 		try {
-			file.write(msg);
+			for (String s : msg) file.write(s);
 			file.flush();
 			return true;
 		} catch (IOException e) {
@@ -43,7 +43,7 @@ public class FileLoggerOutput extends LoggerOutput {
 	}
 	
 	@Override
-	protected String colourise(String out, Logger.Level level) {
+	protected String[] colourise(String[] out, Logger.Level level) {
 		return out;
 	}
 	

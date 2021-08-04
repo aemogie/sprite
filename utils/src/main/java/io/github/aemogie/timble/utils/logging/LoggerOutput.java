@@ -1,6 +1,7 @@
 package io.github.aemogie.timble.utils.logging;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -33,22 +34,27 @@ public abstract class LoggerOutput {
 		return UNIVERSAL_VARIABLES.get(variable).equals(valueSupplier);
 	}
 	
-	protected abstract boolean print(String msg);
+	protected abstract boolean print(String[] msg);
 	
-	protected boolean println(String msg) {
-		return print(msg + "\n");
+	protected boolean println(String[] msg) {
+		return print(Arrays.stream(msg).map(s -> s + "\n").toArray(String[]::new));
 	}
 	
-	private String getFormatted(String message, Logger.Level level) {
-		String out = PATTERN;
-		for (Map.Entry<String, Supplier<String>> entry : UNIVERSAL_VARIABLES.entrySet()) {
-			out = out.replaceAll("!!" + entry.getKey(), String.valueOf(entry.getValue().get()));
+	private String[] getFormatted(String message, Logger.Level level) {
+		String[] in = message.split("\n");
+		String[] out = new String[in.length];
+		Arrays.fill(out, PATTERN);
+		for (int i = 0; i < out.length; i++) {
+			if (in[i].endsWith("\r")) in[i] = in[i].substring(0, message.length() - 1);
+			for (Map.Entry<String, Supplier<String>> entry : UNIVERSAL_VARIABLES.entrySet()) {
+				out[i] = out[i].replace("!!" + entry.getKey(), String.valueOf(entry.getValue().get()));
+			}
+			out[i] = out[i].replace("!!level", String.valueOf(level)).replace("!!msg", in[i]);
 		}
-		out = out.replaceAll("!!level", String.valueOf(level)).replaceAll("!!msg", message);
 		return colourise(out, level);
 	}
 	
-	protected abstract String colourise(String out, Logger.Level level);
+	protected abstract String[] colourise(String[] out, Logger.Level level);
 	
 	private boolean log(String message, Logger.Level error) {
 		if (error.PRIORITY >= level.PRIORITY) return print(getFormatted(message, error));
