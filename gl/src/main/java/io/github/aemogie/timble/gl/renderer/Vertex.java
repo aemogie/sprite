@@ -18,6 +18,6 @@ public final class Vertex {
 	}
 	
 	public interface Attribute {
-		IntBuffer buffer(IntBuffer buffer) throws BufferOverflowException;
+		boolean buffer(IntBuffer buffer) throws BufferOverflowException;
 	}
 }
