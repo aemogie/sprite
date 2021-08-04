@@ -45,7 +45,7 @@ public abstract class LoggerOutput {
 		String[] out = new String[in.length];
 		Arrays.fill(out, PATTERN);
 		for (int i = 0; i < out.length; i++) {
-			if (in[i].endsWith("\r")) in[i] = in[i].substring(0, message.length() - 1);
+			if (in[i].endsWith("\r")) in[i] = in[i].substring(0, in.length - 1);
 			for (Map.Entry<String, Supplier<String>> entry : UNIVERSAL_VARIABLES.entrySet()) {
 				out[i] = out[i].replace("!!" + entry.getKey(), String.valueOf(entry.getValue().get()));
 			}
