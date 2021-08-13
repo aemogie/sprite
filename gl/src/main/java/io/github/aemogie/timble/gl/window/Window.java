@@ -88,10 +88,10 @@ public class Window {
 			return WINDOW;
 		}
 		
-		public boolean setTitle(CharSequence title) {
-			if (title == null || title.isEmpty() || Window.this.title.equals(title)) return true;
-			Window.this.title = title;
-			glfwSetWindowTitle(WINDOW, title);
+		public boolean setTitle(Object title) {
+			if (title == null || String.valueOf(title).isBlank() || Window.this.title.equals(title)) return true;
+			Window.this.title = String.valueOf(title);
+			glfwSetWindowTitle(WINDOW, Window.this.title);
 			return true;
 		}
 	}

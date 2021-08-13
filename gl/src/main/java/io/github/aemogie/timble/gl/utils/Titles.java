@@ -10,7 +10,7 @@ public class Titles {
 	private static Function<Window.FrameLoopEvent, Boolean> title;
 	
 	public static boolean setTitle(Function<Window.FrameLoopEvent, Object> title) {
-		Titles.title = e -> e.setTitle(String.valueOf(title.apply(e)));
+		Titles.title = e -> e.setTitle(title.apply(e));
 		return EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Titles.title);
 	}
 	
