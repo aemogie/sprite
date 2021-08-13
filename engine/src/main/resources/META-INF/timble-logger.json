@@ -1,0 +1,19 @@
+{
+  "outputs": [
+    {
+      "type": "console",
+      "level": "all",
+      "pattern": "[!!hour:!!min:!!sec] [!!thread/!!level] !!msg"
+    }, {
+      "type": "file",
+      "level": "all",
+      "pattern": "[!!hour:!!min:!!sec] [!!thread/!!level] !!msg",
+      "path": "logs/latest.log"
+    }, {
+      "type": "file",
+      "level": "error",
+      "pattern": "[!!hour:!!min:!!sec] [!!thread] !!msg",
+      "path": "logs/errors.log"
+    }
+  ]
+}
