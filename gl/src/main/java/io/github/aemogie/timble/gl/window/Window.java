@@ -5,10 +5,11 @@ import io.github.aemogie.timble.gl.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
 import io.github.aemogie.timble.utils.logging.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.opengl.GL;
 
+import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 import static io.github.aemogie.timble.utils.logging.LogManager.nullifyLogger;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
@@ -18,30 +19,21 @@ public class Window {
 	private final Logger LOGGER;
 	private final long WINDOW;
 	private int width, height;
-	private String title;
-	private FrameLoopEvent frameLoopEvent;
+	private CharSequence title;
 	private boolean vsync;
 	
-	private Window(@Nullable Logger logger, int width, int height, String title, boolean vsync) throws WindowCreationException {
-		this.LOGGER = logger;
+	private Window(@Nullable Logger logger, int width, int height, CharSequence title, boolean vsync) throws WindowCreationException {
+		LOGGER = logger;
 		if (LOGGER != null) LOGGER.debugln("trying to create your amazing window...");
 		this.width = width;
 		this.height = height;
 		this.title = title;
 		this.vsync = vsync;
-		this.WINDOW = init();
-	}
-	
-	@NotNull
-	public static Window create(Logger logger, int width, int height, String title, boolean vsync) throws GLFWInitializationException, WindowCreationException {
-		if (!glfwInit()) throw new GLFWInitializationException("oops! we were unable to initialize GLFW.");
-		return new Window(logger, width, height, title, vsync);
+		WINDOW = init();
 	}
 	
 	public boolean run() {
-		while (!glfwWindowShouldClose(WINDOW)) {
-			if (!EventBus.fireEvent(FrameLoopEvent.class)) return false;
-		}
+		while (!glfwWindowShouldClose(WINDOW)) if (!EventBus.fireEvent(FrameLoopEvent.class)) return false;
 		return destroy();
 	}
 	
@@ -53,10 +45,10 @@ public class Window {
 		if (window == NULL) throw new WindowCreationException("oops! we were unable to initialise your window.");
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(vsync ? 1 : 0);
+		GL.createCapabilities();
 		glfwShowWindow(window);
 		if (LOGGER != null) LOGGER.debugln("window should be visible :)");
-		frameLoopEvent = new FrameLoopEvent();
-		EventBus.registerEvent(frameLoopEvent);
+		EventBus.registerEvent(new FrameLoopEvent());
 		return window;
 	}
 	
@@ -94,6 +86,65 @@ public class Window {
 		
 		public long getWindowPointer() {
 			return WINDOW;
+		}
+		
+		public boolean setTitle(CharSequence title) {
+			if (title == null || title.isEmpty() || Window.this.title.equals(title)) return true;
+			Window.this.title = title;
+			glfwSetWindowTitle(WINDOW, title);
+			return true;
+		}
+	}
+	
+	public static class Builder {
+		
+		private Logger logger = getLogger();
+		private int width = 480, height = 480;
+		private boolean vsync = true;
+		private CharSequence title = "timble. engine. (by aemogie.)";
+		
+		private Builder() throws GLFWInitializationException {
+			if (!glfwInit()) throw new GLFWInitializationException("oops! we were unable to initialize GLFW.");
+		}
+		
+		public static synchronized Builder create() throws GLFWInitializationException {
+			return new Builder();
+		}
+		
+		public Builder setLogger(Logger logger) {
+			this.logger = logger;
+			return this;
+		}
+		
+		public Builder setWidth(int width) {
+			this.width = width;
+			return this;
+		}
+		
+		public Builder setHeight(int height) {
+			this.height = height;
+			return this;
+		}
+		
+		public Builder setVsync(boolean vsync) {
+			this.vsync = vsync;
+			return this;
+		}
+		
+		public Builder setTitle(CharSequence title) {
+			this.title = title;
+			return this;
+		}
+		
+		public Window build() throws WindowCreationException {
+			return new Window(logger, width, height, title, vsync);
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (!(obj instanceof Builder other)) return false;
+			return logger == other.logger && width == other.width && height == other.height && vsync == other.vsync && title == other.title;
 		}
 	}
 }

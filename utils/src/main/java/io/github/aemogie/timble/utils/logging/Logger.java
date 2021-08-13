@@ -3,10 +3,8 @@ package io.github.aemogie.timble.utils.logging;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonStreamParser;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -41,17 +39,9 @@ public class Logger {
 					case "console" -> OUTPUTS.add(new ConsoleLoggerOutput(this, pattern, level));
 				}
 			}
-			Logger instance = this;
-			System.setOut(new PrintStream(new LoggerOutputStream() {
-				protected boolean print(String msg) {
-					return instance.infoln(msg);
-				}
-			}));
-			System.setErr(new PrintStream(new LoggerOutputStream() {
-				protected boolean print(String msg) {
-					return instance.errorln(msg);
-				}
-			}));
+			
+			System.setOut(new PrintStream(new LoggerOutputStream(this::infoln)));
+			System.setErr(new PrintStream(new LoggerOutputStream(this::errorln)));
 		} catch (IOException | URISyntaxException e) {
 			System.err.println("Unable to read from file - META-INF/timble-logger.json");
 		}
@@ -77,24 +67,6 @@ public class Logger {
 		
 	}
 	
-	abstract static class LoggerOutputStream extends OutputStream {
-		
-		public void write(int b) {
-			print(new String(new byte[]{(byte) b}));
-		}
-		
-		public void write(byte @NotNull [] b) {
-			print(new String(b).substring(0, b.length - 1));
-		}
-		
-		public void write(byte @NotNull [] b, int off, int len) {
-			byte[] newB = new byte[len];
-			System.arraycopy(b, off, newB, 0, len);
-			print(new String(newB).substring(0, len - 1));
-		}
-		
-		protected abstract boolean print(String msg);
-	}
 	public boolean safeError(String msg) {
 		Optional<LoggerOutput> out = OUTPUTS.stream().filter(output -> output instanceof ConsoleLoggerOutput).findFirst();
 		if (out.isPresent()) {
