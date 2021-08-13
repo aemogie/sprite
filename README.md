@@ -14,3 +14,7 @@ this... is the 3rd game engine i create with the same name. hopefully this is go
 
 ## engine.
 1. :white_check_mark: primitive class. (still in `gl.` tho.)
+
+---
+# credits.
+huge thanks to [JetBrains](https://www.jetbrains.com/community/opensource/) for providing the licenses for this project!
