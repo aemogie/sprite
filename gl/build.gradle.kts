@@ -23,11 +23,9 @@ repositories {
 }
 
 dependencies {
-	println(lwjglNatives)
 	implementation(project(":utils"))
 	
 	implementation(platform("org.lwjgl:lwjgl-bom:3.2.3"))
-	
 	api("org.lwjgl:lwjgl:3.2.3")
 	api("org.lwjgl:lwjgl-assimp:3.2.3")
 	api("org.lwjgl:lwjgl-glfw:3.2.3")
