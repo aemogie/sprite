@@ -5,10 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonStreamParser;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -23,9 +21,8 @@ public class Logger {
 	final transient List<LoggerOutput> OUTPUTS = new ArrayList<>();
 	
 	Logger() {
-		try {
-			String file = new String(Files.readAllBytes(Paths.get(requireNonNull(Logger.class.getResource("/META-INF/timble-logger.json")).toURI())));
-			JsonObject object = new JsonStreamParser(file).next().getAsJsonObject();
+		try (InputStream file = getClass().getResourceAsStream("/META-INF/timble-logger.json")) {
+			JsonObject object = new JsonStreamParser(new String(requireNonNull(file).readAllBytes())).next().getAsJsonObject();
 			for (JsonElement element : object.getAsJsonArray("outputs")) {
 				JsonObject output = element.getAsJsonObject();
 				String type = output.get("type").getAsString();
@@ -42,7 +39,7 @@ public class Logger {
 			
 			System.setOut(new PrintStream(new LoggerOutputStream(this::infoln)));
 			System.setErr(new PrintStream(new LoggerOutputStream(this::errorln)));
-		} catch (IOException | URISyntaxException e) {
+		} catch (IOException e) {
 			System.err.println("Unable to read from file - META-INF/timble-logger.json");
 		}
 	}
