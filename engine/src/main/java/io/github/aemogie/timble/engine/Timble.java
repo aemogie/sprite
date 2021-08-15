@@ -13,7 +13,7 @@ public class Timble {
 		try {
 			getLogger().debugln("starting up...!");
 			Window window = Window.Builder.create().build();
-			Titles.setTitle(FPS_TITLE);
+			Titles.setTitle(FPS_TITLE, window);
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Debug::triangle);
 			if (window != null) window.run();
 		} catch (Exception e) {

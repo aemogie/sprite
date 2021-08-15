@@ -9,9 +9,9 @@ public class Titles {
 	
 	private static Function<Window.FrameLoopEvent, Boolean> title;
 	
-	public static boolean setTitle(Function<Window.FrameLoopEvent, Object> title) {
+	public static boolean setTitle(Function<Window.FrameLoopEvent, Object> title, Window window) {
 		Titles.title = e -> e.setTitle(title.apply(e));
-		return EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Titles.title);
+		return EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Titles.title, false, window);
 	}
 	
 	public static Function<Window.FrameLoopEvent, Object> FPS_TITLE = new Function<>() {

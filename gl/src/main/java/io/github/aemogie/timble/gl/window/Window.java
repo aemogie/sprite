@@ -48,7 +48,6 @@ public class Window {
 		GL.createCapabilities();
 		glfwShowWindow(window);
 		if (LOGGER != null) LOGGER.debugln("window should be visible :)");
-		EventBus.registerEvent(new FrameLoopEvent());
 		return window;
 	}
 	
