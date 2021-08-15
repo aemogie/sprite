@@ -7,7 +7,7 @@ tasks.jar {
 }
 
 dependencies {
-	implementation(project(":utils"))
-	implementation(project(":gl"))
-	implementation(project(":ui"))
+	implementation(projects.utils)
+	implementation(projects.gl)
+	implementation(projects.ui)
 }
