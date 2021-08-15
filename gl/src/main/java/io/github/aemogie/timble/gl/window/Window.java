@@ -5,7 +5,6 @@ import io.github.aemogie.timble.gl.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
 import io.github.aemogie.timble.utils.logging.Logger;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
@@ -16,83 +15,46 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
-	private final Logger LOGGER;
-	private final long WINDOW;
+	private long window; //don't modify. removing "final" so it's possible to modify in init()
 	private int width, height;
 	private CharSequence title;
 	private boolean vsync;
 	
-	private Window(@Nullable Logger logger, int width, int height, CharSequence title, boolean vsync) throws WindowCreationException {
-		LOGGER = logger;
-		if (LOGGER != null) LOGGER.debugln("trying to create your amazing window...");
+	private Window(int width, int height, CharSequence title, boolean vsync) {
 		this.width = width;
 		this.height = height;
 		this.title = title;
 		this.vsync = vsync;
-		WINDOW = init();
 	}
 	
-	public boolean run() {
-		while (!glfwWindowShouldClose(WINDOW)) if (!EventBus.fireEvent(FrameLoopEvent.class)) return false;
+	public boolean run() throws WindowCreationException {
+		if (!init()) return false;
+		while (!glfwWindowShouldClose(window)) if (!EventBus.fireEvent(FrameLoopEvent.class)) return false;
 		return destroy();
 	}
 	
-	private long init() throws WindowCreationException {
+	private boolean init() throws WindowCreationException {
 		GLFWErrorCallback.createPrint(System.err).set();
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		long window = glfwCreateWindow(width, height, title, NULL, NULL);
+		window = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (window == NULL) throw new WindowCreationException("oops! we were unable to initialise your window.");
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(vsync ? 1 : 0);
 		GL.createCapabilities();
 		glfwShowWindow(window);
-		if (LOGGER != null) LOGGER.debugln("window should be visible :)");
-		return window;
+		return EventBus.fireEvent(InitEvent.class);
 	}
 	
 	private boolean destroy() {
-		if (LOGGER != null) LOGGER.debugln("you closed it? ugh, fine! destroying...");
-		glfwFreeCallbacks(WINDOW);
-		glfwDestroyWindow(WINDOW);
+		boolean eventSuccess = EventBus.fireEvent(DestroyEvent.class);
+		glfwFreeCallbacks(window);
+		glfwDestroyWindow(window);
 		glfwTerminate();
 		GLFWErrorCallback callback;
 		if ((callback = glfwSetErrorCallback(null)) != null) callback.free();
 		nullifyLogger();
-		return glfwGetCurrentContext() == NULL;
-	}
-	
-	public class FrameLoopEvent extends Event {
-		private static double elapsedTime = 0;
-		private double deltaTime;
-		
-		@Override
-		public boolean fire() {
-			deltaTime = glfwGetTime() - elapsedTime;
-			elapsedTime += deltaTime;
-			glfwSwapBuffers(WINDOW);
-			glfwPollEvents();
-			return super.fire();
-		}
-		
-		public double getDeltaTime() {
-			return deltaTime;
-		}
-		
-		public double getElapsedTime() {
-			return elapsedTime;
-		}
-		
-		public long getWindowPointer() {
-			return WINDOW;
-		}
-		
-		public boolean setTitle(Object title) {
-			if (title == null || String.valueOf(title).isBlank() || Window.this.title.equals(title)) return true;
-			Window.this.title = String.valueOf(title);
-			glfwSetWindowTitle(WINDOW, Window.this.title);
-			return true;
-		}
+		return glfwGetCurrentContext() == NULL && eventSuccess;
 	}
 	
 	public static class Builder {
@@ -135,8 +97,8 @@ public class Window {
 			return this;
 		}
 		
-		public Window build() throws WindowCreationException {
-			return new Window(logger, width, height, title, vsync);
+		public Window build() {
+			return new Window(width, height, title, vsync);
 		}
 		
 		@Override
@@ -144,6 +106,55 @@ public class Window {
 			if (this == obj) return true;
 			if (!(obj instanceof Builder other)) return false;
 			return logger == other.logger && width == other.width && height == other.height && vsync == other.vsync && title == other.title;
+		}
+	}
+	
+	public class InitEvent extends Event {
+		public Window getWindow() {
+			return Window.this;
+		}
+	}
+	
+	public class FrameLoopEvent extends Event {
+		private static double elapsedTime = 0;
+		private double deltaTime;
+		
+		@Override
+		public boolean fire() {
+			deltaTime = glfwGetTime() - elapsedTime;
+			elapsedTime += deltaTime;
+			glfwSwapBuffers(Window.this.window);
+			glfwPollEvents();
+			return super.fire();
+		}
+		
+		public double getDeltaTime() {
+			return deltaTime;
+		}
+		
+		public double getElapsedTime() {
+			return elapsedTime;
+		}
+		
+		public long getWindowPointer() {
+			return Window.this.window;
+		}
+		
+		public boolean setTitle(Object title) {
+			String newTitle;
+			if (title == null) return true;
+			else newTitle = String.valueOf(title);
+			CharSequence windowTitle = Window.this.title;
+			if (newTitle.isBlank() || windowTitle.equals(title)) return true;
+			Window.this.title = newTitle;
+			glfwSetWindowTitle(window, Window.this.title);
+			return true;
+		}
+	}
+	
+	public class DestroyEvent extends Event {
+		public Window getWindow() {
+			return Window.this;
 		}
 	}
 }
