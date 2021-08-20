@@ -1,8 +1,8 @@
 package io.github.aemogie.timble.engine;
 
 import io.github.aemogie.timble.engine.utils.Debug;
-import io.github.aemogie.timble.gl.utils.Titles;
 import io.github.aemogie.timble.gl.window.Window;
+import io.github.aemogie.timble.utils.events.Event.Listener;
 import io.github.aemogie.timble.utils.events.EventBus;
 
 import java.util.Arrays;
@@ -11,21 +11,31 @@ import static io.github.aemogie.timble.gl.utils.Titles.FPS_TITLE;
 import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 
 public class Timble {
-	private static Window window;
 	public static void main(String[] args) {
 		try {
-			window = Window.Builder.create().build();
+			Window window = Window.Builder.create().build();
 			if (Arrays.asList(args).contains("--scream")) scream();
-			Titles.setTitle(FPS_TITLE, window);
-			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Debug::triangle);
+			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, FPS_TITLE);
+			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Debug.TRIANGLE);
 			if (!window.run()) getLogger().errorln("oh no! we got an error while running the window :(");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private static void scream() {
-		EventBus.subscribeToEvent(Window.InitEvent.class, e -> getLogger().debugln("initializing your window!"), false, window);
-		EventBus.subscribeToEvent(Window.DestroyEvent.class, e -> getLogger().debugln("sorry! we have to destroy your window..."), false, window);
+	private static boolean scream() {
+		EventBus.subscribeToEvent(Window.InitEvent.class, new Listener<>(false) {
+			@Override
+			protected boolean onFire(Window.InitEvent event) {
+				return getLogger().debugln("initializing your window!");
+			}
+		});
+		EventBus.subscribeToEvent(Window.DestroyEvent.class, new Listener<>(false) {
+			@Override
+			protected boolean onFire(Window.DestroyEvent event) {
+				return getLogger().debugln("sorry! we have to destroy your window...");
+			}
+		});
+		return true;
 	}
 }

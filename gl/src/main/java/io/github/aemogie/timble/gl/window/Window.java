@@ -5,14 +5,15 @@ import io.github.aemogie.timble.gl.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
 import io.github.aemogie.timble.utils.logging.Logger;
-import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.opengl.GL;
 
 import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 import static io.github.aemogie.timble.utils.logging.LogManager.nullifyLogger;
-import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
+
+import org.lwjgl.glfw.*;
+import org.lwjgl.opengl.*;
+import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.*;
 
 public class Window {
 	private long window; //don't modify. removing "final" so it's possible to modify in init()
@@ -29,7 +30,7 @@ public class Window {
 	
 	public boolean run() throws WindowCreationException {
 		if (!init()) return false;
-		while (!glfwWindowShouldClose(window)) if (!EventBus.fireEvent(FrameLoopEvent.class)) return false;
+		while (!glfwWindowShouldClose(window)) if (!EventBus.fireEvent(new FrameLoopEvent())) return false;
 		return destroy();
 	}
 	
@@ -43,11 +44,11 @@ public class Window {
 		glfwSwapInterval(vsync ? 1 : 0);
 		GL.createCapabilities();
 		glfwShowWindow(window);
-		return EventBus.fireEvent(InitEvent.class);
+		return EventBus.fireEvent(new InitEvent());
 	}
 	
 	private boolean destroy() {
-		boolean eventSuccess = EventBus.fireEvent(DestroyEvent.class);
+		boolean eventSuccess = EventBus.fireEvent(new DestroyEvent());
 		glfwFreeCallbacks(window);
 		glfwDestroyWindow(window);
 		glfwTerminate();
