@@ -1,7 +1,7 @@
-package io.github.aemogie.timble.gl.window;
+package io.github.aemogie.timble.graphics.window;
 
-import io.github.aemogie.timble.gl.utils.exceptions.GLFWInitializationException;
-import io.github.aemogie.timble.gl.utils.exceptions.WindowCreationException;
+import io.github.aemogie.timble.graphics.utils.exceptions.GLFWInitializationException;
+import io.github.aemogie.timble.graphics.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
 import io.github.aemogie.timble.utils.logging.Logger;
@@ -10,7 +10,6 @@ import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 import static io.github.aemogie.timble.utils.logging.LogManager.nullifyLogger;
 
 import org.lwjgl.glfw.*;
-import org.lwjgl.opengl.*;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
@@ -30,7 +29,8 @@ public class Window {
 	
 	public boolean run() throws WindowCreationException {
 		if (!init()) return false;
-		while (!glfwWindowShouldClose(window)) if (!EventBus.fireEvent(new FrameLoopEvent())) return false;
+		while (!glfwWindowShouldClose(window))
+			if (!EventBus.fireEvent(new FrameLoopEvent())) glfwWindowShouldClose(window);
 		return destroy();
 	}
 	
@@ -42,7 +42,6 @@ public class Window {
 		if (window == NULL) throw new WindowCreationException("oops! we were unable to initialise your window.");
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(vsync ? 1 : 0);
-		GL.createCapabilities();
 		glfwShowWindow(window);
 		return EventBus.fireEvent(new InitEvent());
 	}

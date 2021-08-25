@@ -1,19 +1,21 @@
 package io.github.aemogie.timble.engine;
 
-import io.github.aemogie.timble.engine.utils.Debug;
-import io.github.aemogie.timble.gl.window.Window;
+import io.github.aemogie.timble.gl.OpenGL;
+import io.github.aemogie.timble.gl.utils.Debug;
+import io.github.aemogie.timble.graphics.window.Window;
 import io.github.aemogie.timble.utils.events.Event.Listener;
 import io.github.aemogie.timble.utils.events.EventBus;
 
 import java.util.Arrays;
 
-import static io.github.aemogie.timble.gl.utils.Titles.FPS_TITLE;
+import static io.github.aemogie.timble.graphics.utils.Titles.FPS_TITLE;
 import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 
 public class Timble {
 	public static void main(String[] args) {
 		try {
 			Window window = Window.Builder.create().build();
+			OpenGL.init();
 			if (Arrays.asList(args).contains("--scream")) scream();
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, FPS_TITLE);
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Debug.TRIANGLE);

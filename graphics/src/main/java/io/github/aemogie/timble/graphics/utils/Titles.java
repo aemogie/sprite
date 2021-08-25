@@ -1,6 +1,6 @@
-package io.github.aemogie.timble.gl.utils;
+package io.github.aemogie.timble.graphics.utils;
 
-import io.github.aemogie.timble.gl.window.Window;
+import io.github.aemogie.timble.graphics.window.Window;
 import io.github.aemogie.timble.utils.events.Event.Listener;
 
 public class Titles {
