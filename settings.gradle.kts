@@ -1,2 +1,5 @@
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-include("utils", "graphics", "gl", "ui", "engine")
+include("utils", "graphics", "ui", "engine")
+graphicsApi("gl")
+
+fun graphicsApi(vararg projectPaths: String?) = include(*projectPaths.map { "graphics:$it" }.toTypedArray())
