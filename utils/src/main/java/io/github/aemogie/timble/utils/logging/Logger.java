@@ -1,41 +1,74 @@
 package io.github.aemogie.timble.utils.logging;
 
 import com.google.gson.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-
-import static java.util.Objects.requireNonNull;
 
 public class Logger {
 	public static final boolean IS_ANSI_SUPPORTED = true;
-	private static final PrintStream SYS_OUT = System.out;
-	private static final PrintStream SYS_ERR = System.err;
+	public static final PrintStream SYS_OUT = System.out;
+	public static final PrintStream SYS_ERR = System.err;
 	final List<LoggerOutput> outputs = new ArrayList<>();
 	
 	Logger() {
 		try (InputStream file = getClass().getResourceAsStream("/META-INF/timble-logger.json")) {
-			JsonObject object = new JsonStreamParser(new String(requireNonNull(file).readAllBytes())).next().getAsJsonObject();
+			if (file == null) {
+				SYS_ERR.println("Unable to locate file - META-INF/timble-logger.json");
+				System.exit(-1);
+			}
+			
+			JsonObject object = new JsonStreamParser(new String(file.readAllBytes())).next().getAsJsonObject();
 			for (JsonElement element : object.getAsJsonArray("outputs")) {
 				JsonObject output = element.getAsJsonObject();
-				String type = output.get("type").getAsString();
 				Level level = Level.valueOf(output.get("level").getAsString().toUpperCase(Locale.ENGLISH));
 				String pattern = output.get("pattern").getAsString();
-				switch (type) {
-					case "file" -> {
-						String path = output.get("path").getAsString();
-						outputs.add(new FileLoggerOutput(path, this, pattern, level));
-					}
-					case "console" -> outputs.add(new ConsoleLoggerOutput(this, pattern, level));
-					default -> throw new IllegalStateException("Unexpected value: " + type);
-				}
+				JsonElement confElem = output.get("config");
+				JsonObject config = confElem != null ? confElem.getAsJsonObject() : null;
+				outputs.add(getLoggerOutput(output.get("class").getAsString(), level, pattern, config));
 			}
 			
 			System.setOut(new PrintStream(new LoggerOutputStream(this::infoln)));
 			System.setErr(new PrintStream(new LoggerOutputStream(this::errorln)));
 		} catch (IOException e) {
-			System.err.println("Unable to read from file - META-INF/timble-logger.json");
+			SYS_ERR.println("Unable to read from file - META-INF/timble-logger.json");
+			System.exit(-1);
 		}
+	}
+	
+	private @NotNull LoggerOutput getLoggerOutput(String className, Level level, String pattern, @Nullable JsonObject config) {
+		Class<?> clazz = null;
+		try {
+			clazz = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			SYS_ERR.printf("Logger Class \"%s\" does not exist!%n", className);
+			System.exit(-1);
+		}
+		if (!LoggerOutput.class.isAssignableFrom(clazz)) {
+			SYS_ERR.printf("Logger Class \"%s\" does not extend LoggerOutput!%n", className);
+			System.exit(-1);
+		}
+		Constructor<?> constructor = null;
+		try {
+			constructor = clazz.getConstructor(Level.class, String.class, JsonObject.class);
+		} catch (NoSuchMethodException e) {
+			SYS_ERR.printf("Logger Class \"%s\" does not have a valid constructor!%n", className);
+			SYS_ERR.println("It should have a constructor with the parameters (Level logLevel, String pattern, @Nullable JsonObject config)");
+			System.exit(-1);
+		}
+		LoggerOutput instance = null;
+		try {
+			instance = (LoggerOutput) constructor.newInstance(level, pattern, config);
+		} catch (InvocationTargetException | InstantiationException | IllegalAccessException | ClassCastException e) {
+			SYS_ERR.println("An error occurred while trying to create the Logger.");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		return instance;
 	}
 	
 	
@@ -54,33 +87,16 @@ public class Logger {
 			this.priority = priority;
 			this.colour = colour;
 		}
-		
 	}
 	
-	public boolean safeError(String msg) {
-		Optional<LoggerOutput> out = outputs.stream().filter(ConsoleLoggerOutput.class::isInstance).findFirst();
-		if (out.isPresent()) {
-			out.get().error(msg);
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean info(String msg) {return outputs.stream().allMatch(output -> output.info(msg));}
-	
-	public boolean infoln(String msg) {return outputs.stream().allMatch(output -> output.infoln(msg));}
-	
-	public boolean debug(String msg) {return outputs.stream().allMatch(output -> output.debug(msg));}
-	
-	public boolean debugln(String msg) {return outputs.stream().allMatch(output -> output.debugln(msg));}
-	
-	public boolean warn(String msg) {return outputs.stream().allMatch(output -> output.warn(msg));}
-	
-	public boolean warnln(String msg) {return outputs.stream().allMatch(output -> output.warnln(msg));}
-	
-	public boolean error(String msg) {return outputs.stream().allMatch(output -> output.error(msg));}
-	
-	public boolean errorln(String msg) {return outputs.stream().allMatch(output -> output.errorln(msg));}
+	public boolean    info(Object msg) {return outputs.stream().allMatch(output -> output.   info(msg));}
+	public boolean  infoln(Object msg) {return outputs.stream().allMatch(output -> output. infoln(msg));}
+	public boolean   debug(Object msg) {return outputs.stream().allMatch(output -> output.  debug(msg));}
+	public boolean debugln(Object msg) {return outputs.stream().allMatch(output -> output.debugln(msg));}
+	public boolean    warn(Object msg) {return outputs.stream().allMatch(output -> output.   warn(msg));}
+	public boolean  warnln(Object msg) {return outputs.stream().allMatch(output -> output. warnln(msg));}
+	public boolean   error(Object msg) {return outputs.stream().allMatch(output -> output.  error(msg));}
+	public boolean errorln(Object msg) {return outputs.stream().allMatch(output -> output.errorln(msg));}
 	
 	boolean destroy() {
 		boolean destroySuccess = outputs.stream().allMatch(LoggerOutput::destroy);

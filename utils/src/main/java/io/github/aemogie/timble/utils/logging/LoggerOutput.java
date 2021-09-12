@@ -1,5 +1,8 @@
 package io.github.aemogie.timble.utils.logging;
 
+import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Nullable;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Supplier;
@@ -14,20 +17,21 @@ public abstract class LoggerOutput {
 		addVariables("hour", () -> integerWithSpecifiedDigits(LocalDateTime.now().getHour(), 2));
 		addVariables("min", () -> integerWithSpecifiedDigits(LocalDateTime.now().getMinute(), 2));
 		addVariables("sec", () -> integerWithSpecifiedDigits(LocalDateTime.now().getSecond(), 2));
-		addVariables("thread", () -> Thread.currentThread().getName());
+		addVariables("thread", Thread.currentThread()::getName);
 	}
 	
-	protected final Logger logger;
 	protected final String pattern;
 	protected Logger.Level level;
+	protected final JsonObject config;
 	
-	protected LoggerOutput(final Logger logger, final String pattern, Logger.Level level) {
-		this.logger = logger;
+	protected LoggerOutput(Logger.Level logLevel, String pattern, @Nullable JsonObject config) {
 		this.pattern = pattern;
-		this.level = level;
+		this.level = logLevel;
+		this.config = config;
 	}
 	
 	public static boolean addVariables(String variable, Supplier<String> valueSupplier) {
+		if (!variable.matches("[a-zA-Z0-9-_]+")) return false;
 		UNIVERSAL_VARIABLES.put(variable, valueSupplier);
 		return UNIVERSAL_VARIABLES.get(variable).equals(valueSupplier);
 	}
@@ -45,54 +49,55 @@ public abstract class LoggerOutput {
 		for (int i = 0; i < out.length; i++) {
 			if (in[i].endsWith("\r")) in[i] = in[i].substring(0, in[i].length() - 1);
 			for (Map.Entry<String, Supplier<String>> entry : UNIVERSAL_VARIABLES.entrySet()) {
-				out[i] = out[i].replace("!!" + entry.getKey(), String.valueOf(entry.getValue().get()));
+				out[i] = out[i].replaceAll("(?<!\\\\)!!" + entry.getKey(), String.valueOf(entry.getValue().get()));
 			}
-			out[i] = out[i].replace("!!level", String.valueOf(level)).replace("!!msg", in[i]);
+			out[i] = out[i].replaceAll("(?<!\\\\)!!level", String.valueOf(level)).replaceAll("(?<!\\\\)!!msg", in[i]);
+			out[i] = out[i].replace("\\!!", "!!");
 		}
 		return colourise(out, level);
 	}
 	
 	protected abstract String[] colourise(String[] out, Logger.Level level);
 	
-	private boolean log(String message, Logger.Level error) {
-		if (error.priority >= level.priority) return print(getFormatted(message, error));
+	private boolean log(Object message, Logger.Level error) {
+		if (error.priority >= level.priority) return print(getFormatted(String.valueOf(message), error));
 		return false;
 	}
 	
-	private boolean logln(String message, Logger.Level error) {
-		if (error.priority >= level.priority) return println(getFormatted(message, error));
+	private boolean logln(Object message, Logger.Level error) {
+		if (error.priority >= level.priority) return println(getFormatted(String.valueOf(message), error));
 		return false;
 	}
 	
-	boolean info(String message) {
+	boolean info(Object message) {
 		return log(message, INFO);
 	}
 	
-	boolean infoln(String message) {
+	boolean infoln(Object message) {
 		return logln(message, INFO);
 	}
 	
-	boolean debug(String message) {
+	boolean debug(Object message) {
 		return log(message, DEBUG);
 	}
 	
-	boolean debugln(String message) {
+	boolean debugln(Object message) {
 		return logln(message, DEBUG);
 	}
 	
-	boolean warn(String message) {
+	boolean warn(Object message) {
 		return log(message, WARN);
 	}
 	
-	boolean warnln(String message) {
+	boolean warnln(Object message) {
 		return logln(message, WARN);
 	}
 	
-	boolean error(String message) {
+	boolean error(Object message) {
 		return log(message, ERROR);
 	}
 	
-	boolean errorln(String message) {
+	boolean errorln(Object message) {
 		return logln(message, ERROR);
 	}
 	

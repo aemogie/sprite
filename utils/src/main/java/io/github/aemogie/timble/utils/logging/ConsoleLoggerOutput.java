@@ -1,5 +1,7 @@
 package io.github.aemogie.timble.utils.logging;
 
+import com.google.gson.JsonObject;
+
 import java.io.PrintStream;
 import java.util.Arrays;
 
@@ -8,8 +10,8 @@ import static io.github.aemogie.timble.utils.logging.Logger.IS_ANSI_SUPPORTED;
 public class ConsoleLoggerOutput extends LoggerOutput {
 	private static final PrintStream SYS_OUT = System.out;
 	
-	public ConsoleLoggerOutput(final Logger logger, String pattern, Logger.Level level) {
-		super(logger, pattern, level);
+	public ConsoleLoggerOutput(Logger.Level logLevel, String pattern, JsonObject config) {
+		super(logLevel, pattern, config);
 	}
 	
 	@Override

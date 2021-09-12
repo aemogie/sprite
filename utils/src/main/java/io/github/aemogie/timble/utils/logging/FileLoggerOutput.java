@@ -1,5 +1,9 @@
 package io.github.aemogie.timble.utils.logging;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 import java.nio.file.Paths;
 
@@ -7,9 +11,18 @@ public class FileLoggerOutput extends LoggerOutput {
 	private final String path;
 	private final FileWriter file;
 	
-	public FileLoggerOutput(String path, Logger logger, String pattern, Logger.Level level) {
-		super(logger, pattern, level);
-		this.path = path;
+	public FileLoggerOutput(Logger.Level logLevel, String pattern, @Nullable JsonObject config) {
+		super(logLevel, pattern, config);
+		if (this.config == null) {
+			Logger.SYS_ERR.printf("Could not locate config for \"%s\"! Please check your \"META-INF/timble-logger.json\"%n", getClass().getSimpleName());
+			System.exit(-1);
+		}
+		JsonElement configPath = this.config.get("path");
+		if (configPath == null) {
+			Logger.SYS_ERR.printf("Could not locate config value \"path\" for \"%s\"! Please check your \"META-INF/timble-logger.json\"%n", getClass().getSimpleName());
+			System.exit(-1);
+		}
+		path = configPath.getAsString();
 		FileWriter tempFile = null;
 		try {
 			tempFile = new FileWriter(path);
@@ -20,7 +33,7 @@ public class FileLoggerOutput extends LoggerOutput {
 				try {
 					tempFile = new FileWriter(path);
 				} catch (IOException ioException) {
-					logger.safeError("Could not create log file at: " + Paths.get(path).toAbsolutePath());
+					Logger.SYS_ERR.println("Could not create log file at: " + Paths.get(path).toAbsolutePath());
 				}
 			}
 		}
@@ -34,7 +47,7 @@ public class FileLoggerOutput extends LoggerOutput {
 			file.flush();
 			return true;
 		} catch (IOException e) {
-			logger.safeError("Unable to write to log file.");
+			Logger.SYS_ERR.println("Unable to write to log file.");
 			return false;
 		}
 	}
@@ -50,7 +63,7 @@ public class FileLoggerOutput extends LoggerOutput {
 			file.close();
 			return true;
 		} catch (IOException e) {
-			logger.safeError("Unable to close log file - " + Paths.get(path).toAbsolutePath());
+			Logger.SYS_ERR.println("Unable to close log file - " + Paths.get(path).toAbsolutePath());
 			return false;
 		}
 	}

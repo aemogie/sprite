@@ -1,19 +1,23 @@
 {
   "outputs": [
     {
-      "type": "console",
+      "class": "io.github.aemogie.timble.utils.logging.ConsoleLoggerOutput",
       "level": "all",
       "pattern": "[!!hour:!!min:!!sec] [!!thread/!!level] !!msg"
     }, {
-      "type": "file",
+      "class": "io.github.aemogie.timble.utils.logging.FileLoggerOutput",
       "level": "all",
       "pattern": "[!!hour:!!min:!!sec] [!!thread/!!level] !!msg",
-      "path": "logs/latest.log"
+      "config": {
+        "path": "logs/latest.log"
+      }
     }, {
-      "type": "file",
+      "class": "io.github.aemogie.timble.utils.logging.FileLoggerOutput",
       "level": "error",
       "pattern": "[!!hour:!!min:!!sec] [!!thread] !!msg",
-      "path": "logs/errors.log"
+      "config": {
+        "path": "logs/errors.log"
+      }
     }
   ]
 }
