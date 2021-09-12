@@ -1,6 +1,8 @@
 package io.github.aemogie.timble.utils.logging;
 
 public class LogManager {
+	private LogManager() {}
+	
 	private static Logger logger = null;
 	
 	private static Logger createLogger() {

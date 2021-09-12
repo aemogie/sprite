@@ -1,29 +1,26 @@
 package io.github.aemogie.timble.utils.logging;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 
-import static io.github.aemogie.timble.utils.Annotations.Relative;
-
 public class FileLoggerOutput extends LoggerOutput {
-	private final String PATH;
-	private final transient FileWriter file;
-	public FileLoggerOutput(@Relative String PATH, Logger LOGGER, String PATTERN, Logger.Level level) {
-		super(LOGGER, PATTERN, level);
-		this.PATH = PATH;
+	private final String path;
+	private final FileWriter file;
+	
+	public FileLoggerOutput(String path, Logger logger, String pattern, Logger.Level level) {
+		super(logger, pattern, level);
+		this.path = path;
 		FileWriter tempFile = null;
 		try {
-			tempFile = new FileWriter(PATH);
+			tempFile = new FileWriter(path);
 		} catch (IOException e) {
-			int i = PATH.lastIndexOf('/') + 1;
-			File directory = new File(PATH.substring(0, i));
+			int i = path.lastIndexOf('/') + 1;
+			File directory = new File(path.substring(0, i));
 			if (!directory.exists() && directory.mkdir()) {
 				try {
-					tempFile = new FileWriter(PATH);
+					tempFile = new FileWriter(path);
 				} catch (IOException ioException) {
-					LOGGER.safeError("Could not create log file at: " + Paths.get(PATH).toAbsolutePath());
+					logger.safeError("Could not create log file at: " + Paths.get(path).toAbsolutePath());
 				}
 			}
 		}
@@ -37,7 +34,7 @@ public class FileLoggerOutput extends LoggerOutput {
 			file.flush();
 			return true;
 		} catch (IOException e) {
-			LOGGER.safeError("Unable to write to log file.");
+			logger.safeError("Unable to write to log file.");
 			return false;
 		}
 	}
@@ -53,7 +50,7 @@ public class FileLoggerOutput extends LoggerOutput {
 			file.close();
 			return true;
 		} catch (IOException e) {
-			LOGGER.safeError("Unable to close log file - " + Paths.get(PATH).toAbsolutePath());
+			logger.safeError("Unable to close log file - " + Paths.get(path).toAbsolutePath());
 			return false;
 		}
 	}

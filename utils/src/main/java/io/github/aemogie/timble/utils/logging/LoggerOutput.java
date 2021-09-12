@@ -1,9 +1,7 @@
 package io.github.aemogie.timble.utils.logging;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static io.github.aemogie.timble.utils.StringUtils.integerWithSpecifiedDigits;
@@ -19,13 +17,13 @@ public abstract class LoggerOutput {
 		addVariables("thread", () -> Thread.currentThread().getName());
 	}
 	
-	protected final transient Logger LOGGER;
-	protected final String PATTERN;
+	protected final Logger logger;
+	protected final String pattern;
 	protected Logger.Level level;
 	
-	protected LoggerOutput(final Logger LOGGER, final String PATTERN, Logger.Level level) {
-		this.LOGGER = LOGGER;
-		this.PATTERN = PATTERN;
+	protected LoggerOutput(final Logger logger, final String pattern, Logger.Level level) {
+		this.logger = logger;
+		this.pattern = pattern;
 		this.level = level;
 	}
 	
@@ -43,7 +41,7 @@ public abstract class LoggerOutput {
 	private String[] getFormatted(String message, Logger.Level level) {
 		String[] in = message.split("\n");
 		String[] out = new String[in.length];
-		Arrays.fill(out, PATTERN);
+		Arrays.fill(out, pattern);
 		for (int i = 0; i < out.length; i++) {
 			if (in[i].endsWith("\r")) in[i] = in[i].substring(0, in[i].length() - 1);
 			for (Map.Entry<String, Supplier<String>> entry : UNIVERSAL_VARIABLES.entrySet()) {
@@ -57,12 +55,12 @@ public abstract class LoggerOutput {
 	protected abstract String[] colourise(String[] out, Logger.Level level);
 	
 	private boolean log(String message, Logger.Level error) {
-		if (error.PRIORITY >= level.PRIORITY) return print(getFormatted(message, error));
+		if (error.priority >= level.priority) return print(getFormatted(message, error));
 		return false;
 	}
 	
 	private boolean logln(String message, Logger.Level error) {
-		if (error.PRIORITY >= level.PRIORITY) return println(getFormatted(message, error));
+		if (error.priority >= level.priority) return println(getFormatted(message, error));
 		return false;
 	}
 	
@@ -96,17 +94,6 @@ public abstract class LoggerOutput {
 	
 	boolean errorln(String message) {
 		return logln(message, ERROR);
-	}
-	
-	@Deprecated //Use timble-logger.json instead
-	boolean setLevel(Logger.Level level) {
-		try {
-			this.level = level;
-			return true;
-		} catch (Exception exception) {
-			exception.printStackTrace();
-			return false;
-		}
 	}
 	
 	boolean destroy() {

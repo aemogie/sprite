@@ -6,6 +6,8 @@ import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
 import io.github.aemogie.timble.utils.logging.Logger;
 
+import java.util.Objects;
+
 import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 import static io.github.aemogie.timble.utils.logging.LogManager.nullifyLogger;
 
@@ -15,8 +17,9 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class Window {
-	private long window; //don't modify. removing "final" so it's possible to modify in init()
-	private int width, height;
+	private long windowPointer; //don't modify. removing "final" so it's possible to modify in init()
+	private int width;
+	private int height;
 	private CharSequence title;
 	private boolean vsync;
 	
@@ -29,28 +32,28 @@ public class Window {
 	
 	public boolean run() throws WindowCreationException {
 		if (!init()) return false;
-		while (!glfwWindowShouldClose(window)) {
-			if (!EventBus.fireEvent(new FrameLoopEvent())) glfwSetWindowShouldClose(window, true);
+		while (!glfwWindowShouldClose(windowPointer)) {
+			if (!EventBus.fireEvent(new FrameLoopEvent())) glfwSetWindowShouldClose(windowPointer, true);
 		}
 		return destroy();
 	}
 	
 	private boolean init() throws WindowCreationException {
-		GLFWErrorCallback.createPrint(System.err).set();
+		glfwSetErrorCallback((error, description) -> getLogger().errorln("[Graphics Error - " + error + "] " + description));
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		window = glfwCreateWindow(width, height, title, NULL, NULL);
-		if (window == NULL) throw new WindowCreationException("oops! we were unable to initialise your window.");
-		glfwMakeContextCurrent(window);
+		windowPointer = glfwCreateWindow(width, height, title, NULL, NULL);
+		if (windowPointer == NULL) throw new WindowCreationException("oops! we were unable to initialise your window.");
+		glfwMakeContextCurrent(windowPointer);
 		glfwSwapInterval(vsync ? 1 : 0);
-		glfwShowWindow(window);
+		glfwShowWindow(windowPointer);
 		return EventBus.fireEvent(new InitEvent());
 	}
 	
 	private boolean destroy() {
 		boolean eventSuccess = EventBus.fireEvent(new DestroyEvent());
-		glfwFreeCallbacks(window);
-		glfwDestroyWindow(window);
+		glfwFreeCallbacks(windowPointer);
+		glfwDestroyWindow(windowPointer);
 		glfwTerminate();
 		GLFWErrorCallback callback;
 		if ((callback = glfwSetErrorCallback(null)) != null) callback.free();
@@ -61,7 +64,8 @@ public class Window {
 	public static class Builder {
 		
 		private Logger logger = getLogger();
-		private int width = 480, height = 480;
+		private int width = 480;
+		private int height = 480;
 		private boolean vsync = true;
 		private CharSequence title = "timble. engine. (by aemogie.)";
 		
@@ -103,10 +107,15 @@ public class Window {
 		}
 		
 		@Override
+		public int hashCode() {
+			return Objects.hash(logger, width, height, vsync, title);
+		}
+		
+		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
 			if (!(obj instanceof Builder other)) return false;
-			return logger == other.logger && width == other.width && height == other.height && vsync == other.vsync && title == other.title;
+			return logger.equals(other.logger) && width == other.width && height == other.height && vsync == other.vsync && title.equals(other.title);
 		}
 	}
 	
@@ -124,7 +133,7 @@ public class Window {
 		public boolean fire() {
 			deltaTime = glfwGetTime() - elapsedTime;
 			elapsedTime += deltaTime;
-			glfwSwapBuffers(Window.this.window);
+			glfwSwapBuffers(Window.this.windowPointer);
 			glfwPollEvents();
 			return super.fire();
 		}
@@ -138,7 +147,7 @@ public class Window {
 		}
 		
 		public long getWindowPointer() {
-			return Window.this.window;
+			return Window.this.windowPointer;
 		}
 		
 		public boolean setTitle(Object title) {
@@ -148,7 +157,7 @@ public class Window {
 			CharSequence windowTitle = Window.this.title;
 			if (newTitle.isBlank() || windowTitle.equals(title)) return true;
 			Window.this.title = newTitle;
-			glfwSetWindowTitle(window, Window.this.title);
+			glfwSetWindowTitle(windowPointer, Window.this.title);
 			return true;
 		}
 	}

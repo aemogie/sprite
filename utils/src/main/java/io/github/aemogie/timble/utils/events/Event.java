@@ -9,7 +9,7 @@ public class Event {
 		return getApplicableListeners().allMatch(listener -> listener.getValue().fire(this) || !listener.getValue().important);
 	}
 	
-	protected Stream<Entry<Class<Event>, Listener<? extends Event>>> getApplicableListeners() {
+	protected Stream<Entry<Class<Event>, Listener<Event>>> getApplicableListeners() {
 		return EventBus.getApplicableListeners(getClass());
 	}
 	
@@ -20,12 +20,8 @@ public class Event {
 		
 		protected abstract boolean onFire(T event);
 		
-		/**
-		 * @deprecated - you should probably use {@link #onFire(T)}
-		 */
-		@SuppressWarnings({"unchecked", "DeprecatedIsStillUsed"})
-		@Deprecated
-		public boolean fire(Event event) {
+		@SuppressWarnings({"unchecked"})
+		protected boolean fire(Event event) {
 			try {
 				return onFire((T) event);
 			} catch (ClassCastException e) {

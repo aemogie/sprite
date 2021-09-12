@@ -4,8 +4,9 @@ import io.github.aemogie.timble.graphics.window.Window;
 import io.github.aemogie.timble.utils.events.Event.Listener;
 
 public class Titles {
+	private Titles() {}
 	
-	public static Listener<Window.FrameLoopEvent> FPS_TITLE = new Listener<>(false) {
+	public static final Listener<Window.FrameLoopEvent> FPS_TITLE = new Listener<>(false) {
 		private static final double REFRESH = 0.175;
 		private static double refreshTemp = REFRESH;
 		

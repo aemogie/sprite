@@ -1,6 +1,8 @@
 package io.github.aemogie.timble.utils;
 
 public class StringUtils {
+	private StringUtils() {}
+	
 	public static String integerWithSpecifiedDigits(int val, int noOfDigits) {
 		String valStr = String.valueOf(val);
 		if (valStr.length() < noOfDigits) {

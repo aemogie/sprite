@@ -6,24 +6,24 @@ import java.io.OutputStream;
 import java.util.function.Consumer;
 
 public class LoggerOutputStream extends OutputStream {
-	private final Consumer<String> LOG_STREAM;
+	private final Consumer<String> logStream;
 	
 	public LoggerOutputStream(Consumer<String> logStream) {
-		this.LOG_STREAM = logStream;
+		this.logStream = logStream;
 	}
 	
 	@Override
 	public void write(byte @NotNull [] b) {
-		LOG_STREAM.accept(new String(b));
+		logStream.accept(new String(b));
 	}
 	
 	@Override
 	public void write(byte @NotNull [] b, int off, int len) {
-		LOG_STREAM.accept(new String(b, off, len));
+		logStream.accept(new String(b, off, len));
 	}
 	
 	@Override
 	public void write(int b) {
-		LOG_STREAM.accept(new String(new byte[]{(byte) b}));
+		logStream.accept(new String(new byte[]{(byte) b}));
 	}
 }

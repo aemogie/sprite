@@ -8,8 +8,8 @@ import static io.github.aemogie.timble.utils.logging.Logger.IS_ANSI_SUPPORTED;
 public class ConsoleLoggerOutput extends LoggerOutput {
 	private static final PrintStream SYS_OUT = System.out;
 	
-	public ConsoleLoggerOutput(final Logger LOGGER, String PATTERN, Logger.Level level) {
-		super(LOGGER, PATTERN, level);
+	public ConsoleLoggerOutput(final Logger logger, String pattern, Logger.Level level) {
+		super(logger, pattern, level);
 	}
 	
 	@Override
@@ -25,6 +25,6 @@ public class ConsoleLoggerOutput extends LoggerOutput {
 	
 	@Override
 	protected String[] colourise(String[] out, Logger.Level level) {
-		return IS_ANSI_SUPPORTED ? Arrays.stream(out).map(s -> "\u001b[" + level.COLOUR + "m" + s + "\u001b[0m").toArray(String[]::new) : out;
+		return IS_ANSI_SUPPORTED ? Arrays.stream(out).map(s -> "\u001b[" + level.colour + "m" + s + "\u001b[0m").toArray(String[]::new) : out;
 	}
 }
