@@ -1,14 +1,16 @@
 package io.github.aemogie.timble.utils.events;
 
+import java.util.ArrayList;
+
 public class CancellableEvent extends Event {
 	private boolean cancelled = false;
 	
 	@Override
-	public boolean fire() {
+	protected boolean fire(ArrayList<Listener<Event>> listeners) {
 		boolean success = true;
-		for (var listener : EventBus.getApplicableListeners(getClass()).toList()) {
+		for (Listener<Event> listener : listeners) {
 			if (cancelled) break;
-			success = success && listener.getValue().fire(this);
+			success = success && (listener.fire(this) || !listener.important);
 		}
 		cancelled = false;
 		return success;

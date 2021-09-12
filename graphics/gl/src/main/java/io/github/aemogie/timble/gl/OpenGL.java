@@ -9,7 +9,7 @@ import org.lwjgl.opengl.*;
 public class OpenGL {
 	public static boolean init() {
 		EventBus.subscribeToEvent(Window.InitEvent.class, new Listener<>(true) {
-			protected boolean onFire(Window.InitEvent event) {
+			protected boolean fire(Window.InitEvent event) {
 				GL.createCapabilities();
 				return true;
 			}

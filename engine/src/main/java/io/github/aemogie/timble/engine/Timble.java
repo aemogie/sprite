@@ -28,13 +28,13 @@ public class Timble {
 	private static boolean scream() {
 		EventBus.subscribeToEvent(Window.InitEvent.class, new Listener<>(false) {
 			@Override
-			protected boolean onFire(Window.InitEvent event) {
+			protected boolean fire(Window.InitEvent event) {
 				return getLogger().debugln("initializing your window!");
 			}
 		});
 		EventBus.subscribeToEvent(Window.DestroyEvent.class, new Listener<>(false) {
 			@Override
-			protected boolean onFire(Window.DestroyEvent event) {
+			protected boolean fire(Window.DestroyEvent event) {
 				return getLogger().debugln("sorry! we have to destroy your window...");
 			}
 		});

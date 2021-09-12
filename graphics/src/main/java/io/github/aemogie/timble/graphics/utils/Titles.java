@@ -11,7 +11,7 @@ public class Titles {
 		private static double refreshTemp = REFRESH;
 		
 		@Override
-		public boolean onFire(Window.FrameLoopEvent event) {
+		public boolean fire(Window.FrameLoopEvent event) {
 			refreshTemp -= event.getDeltaTime();
 			if (refreshTemp < 0) {
 				refreshTemp = REFRESH;

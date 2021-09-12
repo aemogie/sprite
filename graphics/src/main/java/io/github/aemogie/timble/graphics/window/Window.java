@@ -130,12 +130,12 @@ public class Window {
 		private double deltaTime;
 		
 		@Override
-		public boolean fire() {
+		public boolean initFire() {
 			deltaTime = glfwGetTime() - elapsedTime;
 			elapsedTime += deltaTime;
 			glfwSwapBuffers(Window.this.windowPointer);
 			glfwPollEvents();
-			return super.fire();
+			return true;
 		}
 		
 		public double getDeltaTime() {
