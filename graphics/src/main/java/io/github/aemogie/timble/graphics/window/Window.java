@@ -29,8 +29,9 @@ public class Window {
 	
 	public boolean run() throws WindowCreationException {
 		if (!init()) return false;
-		while (!glfwWindowShouldClose(window))
-			if (!EventBus.fireEvent(new FrameLoopEvent())) glfwWindowShouldClose(window);
+		while (!glfwWindowShouldClose(window)) {
+			if (!EventBus.fireEvent(new FrameLoopEvent())) glfwSetWindowShouldClose(window, true);
+		}
 		return destroy();
 	}
 	
