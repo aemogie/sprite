@@ -1,6 +1,6 @@
 package io.github.aemogie.timble.gl.utils;
 
-import io.github.aemogie.timble.graphics.window.Window;
+import io.github.aemogie.timble.graphics.Window;
 import io.github.aemogie.timble.utils.events.Event.Listener;
 
 import static org.lwjgl.opengl.GL11.*;

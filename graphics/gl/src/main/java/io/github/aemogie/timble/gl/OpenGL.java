@@ -1,19 +1,17 @@
 package io.github.aemogie.timble.gl;
 
-import io.github.aemogie.timble.graphics.window.Window;
-import io.github.aemogie.timble.utils.events.Event.Listener;
-import io.github.aemogie.timble.utils.events.EventBus;
+import io.github.aemogie.timble.graphics.GraphicsAPI;
+import io.github.aemogie.timble.graphics.Window;
 
 import org.lwjgl.opengl.*;
+import static org.lwjgl.glfw.GLFW.*;
 
-public class OpenGL {
-	public static boolean init() {
-		EventBus.subscribeToEvent(Window.InitEvent.class, new Listener<>(true) {
-			protected boolean fire(Window.InitEvent event) {
-				GL.createCapabilities();
-				return true;
-			}
-		});
+public class OpenGL extends GraphicsAPI {
+	
+	@Override
+	public boolean init(Window window) {
+		glfwMakeContextCurrent(window.getGLFWWindowPointer());
+		GL.createCapabilities();
 		return true;
 	}
 }

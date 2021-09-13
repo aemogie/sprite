@@ -2,7 +2,7 @@ package io.github.aemogie.timble.engine;
 
 import io.github.aemogie.timble.gl.OpenGL;
 import io.github.aemogie.timble.gl.utils.Debug;
-import io.github.aemogie.timble.graphics.window.Window;
+import io.github.aemogie.timble.graphics.Window;
 import io.github.aemogie.timble.utils.events.Event.Listener;
 import io.github.aemogie.timble.utils.events.EventBus;
 
@@ -14,8 +14,7 @@ import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 public class Timble {
 	public static void main(String[] args) {
 		try {
-			Window window = Window.Builder.create().build();
-			OpenGL.init();
+			Window window = Window.Builder.create(new OpenGL()).build();
 			if (Arrays.asList(args).contains("--scream")) scream();
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, FPS_TITLE);
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Debug.TRIANGLE);

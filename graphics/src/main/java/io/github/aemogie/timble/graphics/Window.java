@@ -1,10 +1,12 @@
-package io.github.aemogie.timble.graphics.window;
+package io.github.aemogie.timble.graphics;
 
 import io.github.aemogie.timble.graphics.utils.exceptions.GLFWInitializationException;
 import io.github.aemogie.timble.graphics.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
 import io.github.aemogie.timble.utils.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -18,12 +20,14 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 public class Window {
 	private long windowPointer; //don't modify. removing "final" so it's possible to modify in init()
+	private final GraphicsAPI api;
 	private int width;
 	private int height;
 	private CharSequence title;
 	private boolean vsync;
 	
-	private Window(int width, int height, CharSequence title, boolean vsync) {
+	private Window(GraphicsAPI api, int width, int height, CharSequence title, boolean vsync) {
+		this.api = api;
 		this.width = width;
 		this.height = height;
 		this.title = title;
@@ -44,7 +48,7 @@ public class Window {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		windowPointer = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (windowPointer == NULL) throw new WindowCreationException("oops! we were unable to initialise your window.");
-		glfwMakeContextCurrent(windowPointer);
+		api.init(this);
 		glfwSwapInterval(vsync ? 1 : 0);
 		glfwShowWindow(windowPointer);
 		return EventBus.fireEvent(new InitEvent());
@@ -61,23 +65,34 @@ public class Window {
 		return glfwGetCurrentContext() == NULL && eventSuccess;
 	}
 	
+	public final long getGLFWWindowPointer() {
+		return windowPointer;
+	}
+	
 	public static class Builder {
 		
-		private Logger logger = getLogger();
+		private @NotNull GraphicsAPI api;
+		private @Nullable Logger logger = getLogger();
 		private int width = 480;
 		private int height = 480;
 		private boolean vsync = true;
 		private CharSequence title = "timble. engine. (by aemogie.)";
 		
-		private Builder() throws GLFWInitializationException {
+		private Builder(@NotNull GraphicsAPI api) throws GLFWInitializationException {
 			if (!glfwInit()) throw new GLFWInitializationException("oops! we were unable to initialize GLFW.");
+			this.api = api;
 		}
 		
-		public static synchronized Builder create() throws GLFWInitializationException {
-			return new Builder();
+		public static synchronized Builder create(@NotNull GraphicsAPI api) throws GLFWInitializationException {
+			return new Builder(api);
 		}
 		
-		public Builder setLogger(Logger logger) {
+		public Builder setApi(@NotNull GraphicsAPI api) {
+			this.api = api;
+			return this;
+		}
+		
+		public Builder setLogger(@Nullable Logger logger) {
 			this.logger = logger;
 			return this;
 		}
@@ -103,19 +118,19 @@ public class Window {
 		}
 		
 		public Window build() {
-			return new Window(width, height, title, vsync);
+			return new Window(api, width, height, title, vsync);
 		}
 		
 		@Override
 		public int hashCode() {
-			return Objects.hash(logger, width, height, vsync, title);
+			return Objects.hash(api, logger, width, height, vsync, title);
 		}
 		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
 			if (!(obj instanceof Builder other)) return false;
-			return logger.equals(other.logger) && width == other.width && height == other.height && vsync == other.vsync && title.equals(other.title);
+			return Objects.equals(logger, other.logger) && width == other.width && height == other.height && vsync == other.vsync && Objects.equals(title, other.title);
 		}
 	}
 	
