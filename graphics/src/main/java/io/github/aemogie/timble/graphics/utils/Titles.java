@@ -10,6 +10,7 @@ public final class Titles {
 		private static final double REFRESH = 0.175;
 		private static double refreshTemp = REFRESH;
 		
+		@SuppressWarnings("FeatureEnvy")
 		@Override
 		public boolean fire(Window.FrameLoopEvent event) {
 			refreshTemp -= event.getDeltaTime();

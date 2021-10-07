@@ -19,7 +19,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 @SuppressWarnings("FieldMayBeFinal") //TODO: Implement setters and callbacks.
-public class Window {
+public final class Window {
 	private long windowPointer; //don't modify. removing "final" so it's possible to modify in init()
 	private final GraphicsAPI api;
 	private int width;
@@ -66,11 +66,11 @@ public class Window {
 		return glfwGetCurrentContext() == NULL && eventSuccess;
 	}
 	
-	public final long getGLFWWindowPointer() {
+	public long getGLFWWindowPointer() {
 		return windowPointer;
 	}
 	
-	public static class Builder {
+	public static final class Builder {
 		
 		private @NotNull GraphicsAPI api;
 		private @Nullable Logger logger = getLogger();
