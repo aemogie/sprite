@@ -11,7 +11,9 @@ import java.util.Arrays;
 import static io.github.aemogie.timble.graphics.utils.Titles.FPS_TITLE;
 import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
 
-public class Timble {
+public final class Timble {
+	private Timble(){}
+	
 	public static void main(String[] args) {
 		try {
 			Window window = Window.Builder.create(new OpenGL()).build();

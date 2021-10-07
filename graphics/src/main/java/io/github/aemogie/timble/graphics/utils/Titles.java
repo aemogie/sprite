@@ -3,7 +3,7 @@ package io.github.aemogie.timble.graphics.utils;
 import io.github.aemogie.timble.graphics.Window;
 import io.github.aemogie.timble.utils.events.Event.Listener;
 
-public class Titles {
+public final class Titles {
 	private Titles() {}
 	
 	public static final Listener<Window.FrameLoopEvent> FPS_TITLE = new Listener<>(false) {

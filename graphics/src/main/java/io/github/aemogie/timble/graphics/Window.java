@@ -18,6 +18,7 @@ import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
+@SuppressWarnings("FieldMayBeFinal") //TODO: Implement setters and callbacks.
 public class Window {
 	private long windowPointer; //don't modify. removing "final" so it's possible to modify in init()
 	private final GraphicsAPI api;
@@ -43,7 +44,7 @@ public class Window {
 	}
 	
 	private boolean init() throws WindowCreationException {
-		glfwSetErrorCallback((error, description) -> getLogger().errorln("[Graphics Error - " + error + "] " + description));
+		GLFWErrorCallback.createPrint(System.err).set();
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		windowPointer = glfwCreateWindow(width, height, title, NULL, NULL);

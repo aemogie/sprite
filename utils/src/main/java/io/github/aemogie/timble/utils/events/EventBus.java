@@ -5,7 +5,7 @@ import io.github.aemogie.timble.utils.events.Event.Listener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class EventBus {
+public final class EventBus {
 	private EventBus() {}
 	
 	static final HashMap<Class<Event>, ArrayList<Listener<Event>>> LISTENERS = new HashMap<>();

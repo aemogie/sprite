@@ -5,7 +5,7 @@ import io.github.aemogie.timble.utils.events.Event.Listener;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Debug {
+public final class Debug {
 	private Debug() {}
 	public static final Listener<Window.FrameLoopEvent> TRIANGLE = new Listener<>(false) {
 		@Override

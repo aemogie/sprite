@@ -1,7 +1,11 @@
 package io.github.aemogie.timble.utils;
 
-public class StringUtils {
+import java.util.regex.Pattern;
+
+public final class StringUtils {
 	private StringUtils() {}
+	
+	public static final Pattern WORD_REGEX = Pattern.compile("\\w+");
 	
 	public static String integerWithSpecifiedDigits(int val, int noOfDigits) {
 		String valStr = String.valueOf(val);
