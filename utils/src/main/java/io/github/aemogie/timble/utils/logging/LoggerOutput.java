@@ -60,12 +60,12 @@ public abstract class LoggerOutput {
 	protected abstract String[] colourise(String[] out, Logger.Level level);
 	
 	private boolean log(Object message, Logger.Level error) {
-		if (error.priority >= level.priority) return print(getFormatted(String.valueOf(message), error));
+		if (error.ordinal() >= level.ordinal()) return print(getFormatted(String.valueOf(message), error));
 		return false;
 	}
 	
 	private boolean logln(Object message, Logger.Level error) {
-		if (error.priority >= level.priority) return println(getFormatted(String.valueOf(message), error));
+		if (error.ordinal() >= level.ordinal()) return println(getFormatted(String.valueOf(message), error));
 		return false;
 	}
 	

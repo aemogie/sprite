@@ -2,13 +2,11 @@ package io.github.aemogie.timble.utils.logging;
 
 import com.google.gson.JsonObject;
 
-import java.io.PrintStream;
 import java.util.Arrays;
 
 import static io.github.aemogie.timble.utils.logging.Logger.IS_ANSI_SUPPORTED;
 
 public class ConsoleLoggerOutput extends LoggerOutput {
-	private static final PrintStream SYS_OUT = System.out;
 	
 	public ConsoleLoggerOutput(Logger.Level logLevel, String pattern, JsonObject config) {
 		super(logLevel, pattern, config);
@@ -17,7 +15,7 @@ public class ConsoleLoggerOutput extends LoggerOutput {
 	@Override
 	protected boolean print(String[] msg) {
 		try {
-			for (String s : msg) SYS_OUT.print(s);
+			for (String s : msg) level.out.print(s);
 			return true;
 		} catch (Exception exception) {
 			exception.printStackTrace();

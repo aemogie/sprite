@@ -1,6 +1,7 @@
 package io.github.aemogie.timble.utils.logging;
 
 import com.google.gson.*;
+import io.github.aemogie.timble.utils.StreamUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,33 +74,33 @@ public class Logger {
 	
 	
 	public enum Level {
-		ALL(0, 39),
-		INFO(1, 32),
-		DEBUG(2, 36),
-		WARN(3, 33),
-		ERROR(4, 31),
-		NONE(-1, 39),
+		ALL(39, System.out),
+		INFO(32, System.out),
+		DEBUG(36, System.out),
+		WARN(33, System.out),
+		ERROR(31, System.err)
 		;
-		public final int priority;
-		public final int colour;
 		
-		Level(int priority, int colour) {
-			this.priority = priority;
+		public final int colour;
+		public final PrintStream out;
+		
+		Level(int colour, PrintStream out) {
 			this.colour = colour;
+			this.out = out;
 		}
 	}
 	
-	public boolean    info(Object msg) {return outputs.stream().allMatch(output -> output.   info(msg));}
-	public boolean  infoln(Object msg) {return outputs.stream().allMatch(output -> output. infoln(msg));}
-	public boolean   debug(Object msg) {return outputs.stream().allMatch(output -> output.  debug(msg));}
-	public boolean debugln(Object msg) {return outputs.stream().allMatch(output -> output.debugln(msg));}
-	public boolean    warn(Object msg) {return outputs.stream().allMatch(output -> output.   warn(msg));}
-	public boolean  warnln(Object msg) {return outputs.stream().allMatch(output -> output. warnln(msg));}
-	public boolean   error(Object msg) {return outputs.stream().allMatch(output -> output.  error(msg));}
-	public boolean errorln(Object msg) {return outputs.stream().allMatch(output -> output.errorln(msg));}
+	public boolean    info(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output.   info(msg));}
+	public boolean  infoln(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output. infoln(msg));}
+	public boolean   debug(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output.  debug(msg));}
+	public boolean debugln(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output.debugln(msg));}
+	public boolean    warn(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output.   warn(msg));}
+	public boolean  warnln(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output. warnln(msg));}
+	public boolean   error(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output.  error(msg));}
+	public boolean errorln(Object msg) {return StreamUtils.runAllAndEval(outputs, output -> output.errorln(msg));}
 	
 	boolean destroy() {
-		boolean destroySuccess = outputs.stream().allMatch(LoggerOutput::destroy);
+		boolean destroySuccess = StreamUtils.runAllAndEval(outputs, LoggerOutput::destroy);
 		System.setOut(SYS_OUT);
 		System.setErr(SYS_ERR);
 		return destroySuccess && System.out == SYS_OUT && System.err == SYS_ERR;
