@@ -3,6 +3,7 @@ package io.github.aemogie.timble.utils.events
 object EventBus {
 	val LISTENERS = HashMap<Class<Event>, ArrayList<Event.Listener<Event?>>>()
 	@JvmStatic fun <T : Event?> fireEvent(event: T): Boolean {
+		//FIXME: throws a NPE if no listeners were found when firing. (remove `--scream` arg)
 		return event!!.initFire() && event.fire(LISTENERS[event.javaClass]!!)
 	}
 	

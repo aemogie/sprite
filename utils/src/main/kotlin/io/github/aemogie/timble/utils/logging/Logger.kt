@@ -2,118 +2,119 @@ package io.github.aemogie.timble.utils.logging
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonStreamParser
-import io.github.aemogie.timble.utils.StreamUtils
-import io.github.aemogie.timble.utils.logging.LoggerOutput
-import java.io.IOException
+import io.github.aemogie.timble.utils.ResourceLoader
+import io.github.aemogie.timble.utils.console.STD_ERR
+import io.github.aemogie.timble.utils.logging.Logger.Level.*
 import java.io.PrintStream
-import java.lang.reflect.Constructor
+import java.lang.Thread.currentThread
+import java.time.Instant.now
 import java.util.*
+import kotlin.concurrent.thread
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.jvm.javaType
 import kotlin.system.exitProcess
 
-class Logger internal constructor() {
-	val outputs: MutableList<LoggerOutput> = ArrayList()
-	private fun getLoggerOutput(className: String, level: Level, pattern: String, config: JsonObject?): LoggerOutput {
-		val clazz: Class<*>
-		try {
-			clazz = Class.forName(className)
-		} catch (e: ClassNotFoundException) {
-			SYS_ERR.printf("Logger Class \"%s\" does not exist!%n", className)
-			exitProcess(-1)
+@Suppress("unused") //for the log methods `info` and `warn`.
+object Logger {
+	private val outputs: List<LoggerOutput>
+	private val records: Queue<LogRecord> = ArrayDeque()
+	
+	//[0] = Thread#getStackTrace
+	//[1] = Logger#(*)
+	//[2] = Caller#method
+	
+	@JvmStatic fun info(vararg msg: Any?): Boolean = synchronized(records) {
+		records.add(LogRecord(INFO, currentThread(), currentThread().stackTrace[2], now(), msg.toList()))
+	}
+	
+	@JvmStatic fun debug(vararg msg: Any?): Boolean = synchronized(records) {
+		records.add(LogRecord(DEBUG, currentThread(), currentThread().stackTrace[2], now(), msg.toList()))
+	}
+	
+	@JvmStatic fun warn(vararg msg: Any?): Boolean = synchronized(records) {
+		records.add(LogRecord(WARN, currentThread(), currentThread().stackTrace[2], now(), msg.toList()))
+	}
+	
+	@JvmStatic fun error(vararg msg: Any?): Boolean = synchronized(records) {
+		records.add(LogRecord(ERROR, currentThread(), currentThread().stackTrace[2], now(), msg.toList()))
+	}
+	
+	@JvmStatic fun fatal(vararg msg: Any?): Boolean = synchronized(records) {
+		records.add(LogRecord(FATAL, currentThread(), currentThread().stackTrace[2], now(), msg.toList()))
+	}
+	
+	//beware: reflection
+	private fun createOutput(config: JsonObject): LoggerOutput {
+		return config["class"]?.asString.let {
+			if (it == null) {
+				STD_ERR.write("Logger config doesn't have a \"class\" value.\n".toByteArray())
+				exitProcess(-1)
+			} else it
+		}.let { name ->
+			Class.forName(name).kotlin.let {
+				if (it.isSubclassOf(LoggerOutput::class)) it
+				else null
+			}.let {
+				if (it == null) {
+					STD_ERR.write("Logger Class \"$name\" does not extend LoggerOutput.\n".toByteArray())
+					exitProcess(-1)
+				} else it
+			}.constructors.singleOrNull {
+				it.parameters.size == 1 && it.parameters[0].type.javaType == JsonObject::class.java
+			}.let {
+				if (it == null) {
+					STD_ERR.write("Logger Class \"$name\" does not have a valid constructor.\n".toByteArray())
+					exitProcess(-1)
+				} else it
+			}.call(config) as LoggerOutput
 		}
-		if (!LoggerOutput::class.java.isAssignableFrom(clazz)) {
-			SYS_ERR.printf("Logger Class \"%s\" does not extend LoggerOutput!%n", className)
-			exitProcess(-1)
-		}
-		val constructor: Constructor<*>
-		try {
-			constructor = clazz.getConstructor(Level::class.java, String::class.java, JsonObject::class.java)
-		} catch (e: NoSuchMethodException) {
-			SYS_ERR.printf("Logger Class \"%s\" does not have a valid constructor!%n", className)
-			SYS_ERR.println("It should have a constructor with the parameters (Level logLevel, String pattern, @Nullable JsonObject config)")
-			exitProcess(-1)
-		}
-		val instance: LoggerOutput
-		try {
-			instance = constructor.newInstance(level, pattern, config) as LoggerOutput
-		} catch (e: Exception) {
-			SYS_ERR.println("An error occurred while trying to create the Logger.")
-			e.printStackTrace()
-			exitProcess(-1)
-		}
-		return instance
 	}
 	
-	enum class Level(val colour: Int, val out: PrintStream) {
-		ALL(39, System.out), INFO(32, System.out), DEBUG(36, System.out), WARN(33, System.out), ERROR(31, System.err);
+	private val SYS_OUT: PrintStream = System.out
+	private val SYS_ERR: PrintStream = System.err
+	
+	@JvmStatic fun replaceDefault(): Boolean {
+		System.setOut(LoggerPrintStream { thread, caller, instant, content ->
+			synchronized(records) { records.add(LogRecord(INFO, thread, caller, instant, listOf(content))) }
+		})
+		System.setErr(LoggerPrintStream { thread, caller, instant, content ->
+			synchronized(records) { records.add(LogRecord(ERROR, thread, caller, instant, listOf(content))) }
+		})
+		return true
 	}
 	
-	fun info(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.info(msg) }
-	}
-	
-	fun infoln(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.infoln(msg) }
-	}
-	
-	fun debug(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.debug(msg) }
-	}
-	
-	fun debugln(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.debugln(msg) }
-	}
-	
-	fun warn(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.warn(msg) }
-	}
-	
-	fun warnln(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.warnln(msg) }
-	}
-	
-	fun error(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.error(msg) }
-	}
-	
-	fun errorln(msg: Any): Boolean {
-		return StreamUtils.runAllAndEval(outputs) { output: LoggerOutput -> output.errorln(msg) }
-	}
-	
-	fun destroy(): Boolean {
-		val destroySuccess = StreamUtils.runAllAndEval(outputs) { obj: LoggerOutput -> obj.destroy() }
+	@JvmStatic fun restoreDefault(): Boolean {
 		System.setOut(SYS_OUT)
 		System.setErr(SYS_ERR)
-		return destroySuccess && System.out === SYS_OUT && System.err === SYS_ERR
+		return true
 	}
 	
-	companion object {
-		const val IS_ANSI_SUPPORTED = true
-		val SYS_OUT = System.out
-		val SYS_ERR = System.err
-	}
+	const val CONFIG_PATH: String = "/META-INF/timble-logger.json"
 	
 	init {
-		try {
-			javaClass.getResourceAsStream("/META-INF/timble-logger.json").use { file ->
-				if (file == null) {
-					SYS_ERR.println("Unable to locate file - META-INF/timble-logger.json")
-					exitProcess(-1)
-				}
-				val `object` = JsonStreamParser(String(file.readAllBytes())).next().asJsonObject
-				for (element in `object`.getAsJsonArray("outputs")) {
-					val output = element.asJsonObject
-					val level = Level.valueOf(output["level"].asString.uppercase(Locale.ENGLISH))
-					val pattern = output["pattern"].asString
-					val confElem = output["config"]
-					val config = confElem?.asJsonObject
-					outputs.add(getLoggerOutput(output["class"].asString, level, pattern, config))
-				}
-				System.setOut(PrintStream(LoggerOutputStream { msg: String -> infoln(msg) }))
-				System.setErr(PrintStream(LoggerOutputStream { msg: String -> errorln(msg) }))
-			}
-		} catch (e: IOException) {
-			SYS_ERR.println("Unable to read from file - META-INF/timble-logger.json")
-			exitProcess(-1)
+		//init
+		outputs = ResourceLoader.getResourceReader(CONFIG_PATH) { reader ->
+			JsonStreamParser(reader).next().asJsonArray.map { createOutput(it.asJsonObject) }
 		}
+		
+		//run
+		thread(isDaemon = true, name = "Logger") {
+			while (true) synchronized(records) {
+				//NOTE: locking even when the value is empty might be bad. also might have to lock `outputs`
+				records.poll()?.also { outputs.forEach { out -> out.log(it) } }
+			}
+		}
+		
+		//cleanup
+		Runtime.getRuntime().addShutdownHook(thread(start = false, name = "Logger.ShutDown") {
+			synchronized(records) {
+				records.forEach { outputs.forEach { out -> out.log(it) } }
+			}
+			outputs.forEach(LoggerOutput::destroy)
+		})
+	}
+	
+	enum class Level {
+		ALL, INFO, DEBUG, WARN, ERROR, FATAL;
 	}
 }

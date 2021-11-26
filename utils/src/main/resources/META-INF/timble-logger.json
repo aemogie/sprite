@@ -1,0 +1,16 @@
+[
+	{
+		"class": "io.github.aemogie.timble.utils.console.ConsoleLoggerOutput",
+		"level": "all"
+	},
+	{
+		"class": "io.github.aemogie.timble.utils.logging.FileLoggerOutput",
+		"level": "all",
+		"path": "logs/latest.log"
+	},
+	{
+		"class": "io.github.aemogie.timble.utils.logging.FileLoggerOutput",
+		"level": "error",
+		"path": "logs/errors.log"
+	}
+]

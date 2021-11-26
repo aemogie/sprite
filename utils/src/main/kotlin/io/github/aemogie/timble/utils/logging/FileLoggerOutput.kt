@@ -1,74 +1,55 @@
 package io.github.aemogie.timble.utils.logging
 
 import com.google.gson.JsonObject
-import java.io.File
-import java.io.FileWriter
-import java.io.IOException
-import java.nio.file.Paths
+import io.github.aemogie.timble.utils.console.STD_ERR
+import java.io.*
 import kotlin.system.exitProcess
 
-class FileLoggerOutput(logLevel: Logger.Level, pattern: String, config: JsonObject?) :
-	LoggerOutput(logLevel, pattern, config) {
-	private val path: String
-	private val file: FileWriter?
-	override fun print(msg: Array<String?>): Boolean {
+@Suppress("unused") //used via reflection, from the json config
+class FileLoggerOutput(config: JsonObject) : LoggerOutput(config) {
+	
+	private val path: String = config["path"].let {
+		if (it == null) {
+			STD_ERR.write("Could not locate config value \"path\" for \"${this::class.simpleName}\"!\n".toByteArray())
+			STD_ERR.write("Please check your \"${Logger.CONFIG_PATH}\"\n".toByteArray())
+			exitProcess(-1)
+		} else it
+	}.asString
+	
+	private val file: BufferedWriter = BufferedWriter(FileWriter(File(path).apply {
+		parentFile.apply { if (!exists()) mkdirs() }
+	}))
+	
+	override fun print(text: String): Boolean {
 		return try {
-			for (s in msg) file!!.write(s)
-			file!!.flush()
+			file.write(text)
 			true
 		} catch (e: IOException) {
-			Logger.SYS_ERR.println("Unable to write to log file.")
+			STD_ERR.write("Unable to write to log file \"$path\"\n".toByteArray())
+			STD_ERR.write("${e.message}\n".toByteArray())
+			STD_ERR.flush()
 			false
 		}
-	}
-	
-	override fun colourise(out: Array<String?>, level: Logger.Level): Array<String?> {
-		return out
 	}
 	
 	override fun destroy(): Boolean {
 		return try {
-			file!!.close()
+			file.close()
 			true
 		} catch (e: IOException) {
-			Logger.SYS_ERR.println("Unable to close log file - " + Paths.get(path).toAbsolutePath())
+			STD_ERR.write("Unable to close log file \"$path\"\n".toByteArray())
+			STD_ERR.write("${e.message}\n".toByteArray())
+			STD_ERR.flush()
 			false
 		}
 	}
 	
-	init {
-		if (this.config == null) {
-			Logger.SYS_ERR.printf(
-				"Could not locate config for \"%s\"! Please check your \"META-INF/timble-logger.json\"%n",
-				javaClass.simpleName
-			)
-			exitProcess(-1)
-		}
-		val configPath = this.config["path"]
-		if (configPath == null) {
-			Logger.SYS_ERR.printf(
-				"Could not locate config value \"path\" for \"%s\"! Please check your \"META-INF/timble-logger.json\"%n",
-				javaClass.simpleName
-			)
-			exitProcess(-1)
-		}
-		path = configPath.asString
-		var tempFile: FileWriter? = null
-		try {
-			tempFile = FileWriter(path)
-		} catch (e: IOException) {
-			val i = path.lastIndexOf('/') + 1
-			val directory = File(path.substring(0, i))
-			if (!directory.exists() && directory.mkdir()) {
-				try {
-					tempFile = FileWriter(path)
-				} catch (ioException: IOException) {
-					Logger.SYS_ERR.println(
-						"Could not create log file at: " + Paths.get(path).toAbsolutePath()
-					)
-				}
-			}
-		}
-		file = tempFile
-	}
+	override fun format(record: LogRecord, current: String): String = String.format(
+		"[%1\$tH:%1\$tM:%1\$tS] [%2$5s|%3$5s] [%4\$s] %5\$s%n",
+		record.instant.toEpochMilli(),
+		record.thread.name,
+		record.level,
+		record.caller.className,
+		current
+	)
 }

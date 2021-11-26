@@ -4,14 +4,9 @@ import io.github.aemogie.timble.graphics.utils.exceptions.GLFWInitializationExce
 import io.github.aemogie.timble.graphics.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
 import io.github.aemogie.timble.utils.events.EventBus;
-import io.github.aemogie.timble.utils.logging.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-
-import static io.github.aemogie.timble.utils.logging.LogManager.getLogger;
-import static io.github.aemogie.timble.utils.logging.LogManager.nullifyLogger;
 
 import org.lwjgl.glfw.*;
 import static org.lwjgl.glfw.Callbacks.*;
@@ -62,7 +57,6 @@ public final class Window {
 		glfwTerminate();
 		GLFWErrorCallback callback;
 		if ((callback = glfwSetErrorCallback(null)) != null) callback.free();
-		nullifyLogger();
 		return glfwGetCurrentContext() == NULL && eventSuccess;
 	}
 	
@@ -73,7 +67,6 @@ public final class Window {
 	public static final class Builder {
 		
 		private @NotNull GraphicsAPI api;
-		private @Nullable Logger logger = getLogger();
 		private int width = 480;
 		private int height = 480;
 		private boolean vsync = true;
@@ -90,11 +83,6 @@ public final class Window {
 		
 		public Builder setApi(@NotNull GraphicsAPI api) {
 			this.api = api;
-			return this;
-		}
-		
-		public Builder setLogger(@Nullable Logger logger) {
-			this.logger = logger;
 			return this;
 		}
 		
@@ -124,14 +112,14 @@ public final class Window {
 		
 		@Override
 		public int hashCode() {
-			return Objects.hash(api, logger, width, height, vsync, title);
+			return Objects.hash(api, width, height, vsync, title);
 		}
 		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) return true;
 			if (!(obj instanceof Builder other)) return false;
-			return Objects.equals(logger, other.logger) && width == other.width && height == other.height && vsync == other.vsync && Objects.equals(title, other.title);
+			return width == other.width && height == other.height && vsync == other.vsync && Objects.equals(title, other.title);
 		}
 	}
 	
