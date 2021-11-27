@@ -1,12 +1,14 @@
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 
-plugins { kotlin("jvm") version "1.5.31" }
+plugins {
+	kotlin("jvm") version "1.6.0"
+}
 
-val javaVersion = JavaVersion.VERSION_16
+val javaVersion = JavaVersion.VERSION_17
 
 tasks.wrapper {
-	gradleVersion = "7.2"
+	gradleVersion = "7.3"
 	distributionType = ALL
 }
 
@@ -32,6 +34,7 @@ allprojects {
 	
 	repositories { mavenCentral() }
 	
+	@Suppress("GradlePackageUpdate")
 	dependencies {
 		implementation(kotlin("stdlib-jdk8"))
 		implementation(kotlin("reflect"))
