@@ -11,7 +11,7 @@ class FileLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 	private val path: String = config["path"].let {
 		if (it == null) {
 			STD_ERR.write("Could not locate config value \"path\" for \"${this::class.simpleName}\"!\n".toByteArray())
-			STD_ERR.write("Please check your \"${Logger.CONFIG_PATH}\"\n".toByteArray())
+			STD_ERR.write("Please check your \"${CONFIG_PATH}\"\n".toByteArray())
 			exitProcess(-1)
 		} else it
 	}.asString

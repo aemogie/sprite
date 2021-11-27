@@ -2,8 +2,8 @@ package io.github.aemogie.timble.utils.console
 
 import com.google.gson.JsonObject
 import io.github.aemogie.timble.utils.console.ANSIModifier.*
+import io.github.aemogie.timble.utils.logging.Level.WARN
 import io.github.aemogie.timble.utils.logging.LogRecord
-import io.github.aemogie.timble.utils.logging.Logger.Level.WARN
 import io.github.aemogie.timble.utils.logging.LoggerOutput
 
 @Suppress("unused") //used via reflection, from the json config

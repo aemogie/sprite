@@ -16,13 +16,12 @@ public final class Timble {
 	
 	public static void main(String[] args) {
 		try {
-			Logger.replaceDefault();
+			Logger.start();
 			Window window = Window.Builder.create(new OpenGL()).build();
 			if (Arrays.asList(args).contains("--scream")) scream();
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, FPS_TITLE);
 			EventBus.subscribeToEvent(Window.FrameLoopEvent.class, Debug.TRIANGLE);
 			if (!window.run()) Logger.error("oh no! we got an error while running the window :(");
-			Logger.restoreDefault();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
