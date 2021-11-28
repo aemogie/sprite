@@ -3,7 +3,7 @@ package io.github.aemogie.timble.graphics;
 import io.github.aemogie.timble.graphics.utils.exceptions.GLFWInitializationException;
 import io.github.aemogie.timble.graphics.utils.exceptions.WindowCreationException;
 import io.github.aemogie.timble.utils.events.Event;
-import io.github.aemogie.timble.utils.events.EventBus;
+import io.github.aemogie.timble.utils.events.EventNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -14,13 +14,15 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 @SuppressWarnings("FieldMayBeFinal") //TODO: Implement setters and callbacks.
-public final class Window {
+public final class Window extends EventNode {
 	private long windowPointer; //don't modify. removing "final" so it's possible to modify in init()
 	private final GraphicsAPI api;
 	private int width;
 	private int height;
 	private CharSequence title;
 	private boolean vsync;
+	
+	private double elapsedTime = 0;
 	
 	private Window(GraphicsAPI api, int width, int height, CharSequence title, boolean vsync) {
 		this.api = api;
@@ -33,7 +35,12 @@ public final class Window {
 	public boolean run() throws WindowCreationException {
 		if (!init()) return false;
 		while (!glfwWindowShouldClose(windowPointer)) {
-			if (!EventBus.fireEvent(new FrameLoopEvent())) glfwSetWindowShouldClose(windowPointer, true);
+			double dt = glfwGetTime() - elapsedTime;
+			elapsedTime += dt;
+			glfwSwapBuffers(windowPointer);
+			glfwPollEvents();
+			FrameLoopEvent frame = new FrameLoopEvent(dt);
+			if (!fire(frame)) glfwSetWindowShouldClose(windowPointer, true);
 		}
 		return destroy();
 	}
@@ -47,11 +54,11 @@ public final class Window {
 		api.init(this);
 		glfwSwapInterval(vsync ? 1 : 0);
 		glfwShowWindow(windowPointer);
-		return EventBus.fireEvent(new InitEvent());
+		return fire(new InitEvent());
 	}
 	
 	private boolean destroy() {
-		boolean eventSuccess = EventBus.fireEvent(new DestroyEvent());
+		boolean eventSuccess = fire(new DestroyEvent());
 		glfwFreeCallbacks(windowPointer);
 		glfwDestroyWindow(windowPointer);
 		glfwTerminate();
@@ -64,8 +71,18 @@ public final class Window {
 		return windowPointer;
 	}
 	
+	public boolean setTitle(Object title) {
+		String newTitle;
+		if (title == null) return true;
+		else newTitle = String.valueOf(title);
+		CharSequence windowTitle = Window.this.title;
+		if (newTitle.isBlank() || windowTitle.equals(title)) return true;
+		Window.this.title = newTitle;
+		glfwSetWindowTitle(windowPointer, Window.this.title);
+		return true;
+	}
+	
 	public static final class Builder {
-		
 		private @NotNull GraphicsAPI api;
 		private int width = 480;
 		private int height = 480;
@@ -123,52 +140,19 @@ public final class Window {
 		}
 	}
 	
-	public class InitEvent extends Event {
-		public Window getWindow() {
-			return Window.this;
+	private class WindowEvent extends Event {
+		public Window getWindow() { return Window.this; }
+	}
+	
+	public class InitEvent extends WindowEvent {}
+	
+	public class FrameLoopEvent extends WindowEvent {
+		public final double deltaTime;
+		
+		public FrameLoopEvent(double deltaTime) {
+			this.deltaTime = deltaTime;
 		}
 	}
 	
-	public class FrameLoopEvent extends Event {
-		private static double elapsedTime = 0;
-		private double deltaTime;
-		
-		@Override
-		public boolean initFire() {
-			deltaTime = glfwGetTime() - elapsedTime;
-			elapsedTime += deltaTime;
-			glfwSwapBuffers(Window.this.windowPointer);
-			glfwPollEvents();
-			return true;
-		}
-		
-		public double getDeltaTime() {
-			return deltaTime;
-		}
-		
-		public double getElapsedTime() {
-			return elapsedTime;
-		}
-		
-		public long getWindowPointer() {
-			return Window.this.windowPointer;
-		}
-		
-		public boolean setTitle(Object title) {
-			String newTitle;
-			if (title == null) return true;
-			else newTitle = String.valueOf(title);
-			CharSequence windowTitle = Window.this.title;
-			if (newTitle.isBlank() || windowTitle.equals(title)) return true;
-			Window.this.title = newTitle;
-			glfwSetWindowTitle(windowPointer, Window.this.title);
-			return true;
-		}
-	}
-	
-	public class DestroyEvent extends Event {
-		public Window getWindow() {
-			return Window.this;
-		}
-	}
+	public class DestroyEvent extends WindowEvent {}
 }

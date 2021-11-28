@@ -1,24 +1,19 @@
 package io.github.aemogie.timble.graphics.utils;
 
-import io.github.aemogie.timble.graphics.Window;
-import io.github.aemogie.timble.utils.events.Event.Listener;
+import io.github.aemogie.timble.graphics.Window.FrameLoopEvent;
 
 public final class Titles {
 	private Titles() {}
 	
-	public static final Listener<Window.FrameLoopEvent> FPS_TITLE = new Listener<>(false) {
-		private static final double REFRESH = 0.175;
-		private static double refreshTemp = REFRESH;
-		
-		@SuppressWarnings("FeatureEnvy")
-		@Override
-		public boolean fire(Window.FrameLoopEvent event) {
-			refreshTemp -= event.getDeltaTime();
-			if (refreshTemp < 0) {
-				refreshTemp = REFRESH;
-				event.setTitle((int) (1 / event.getDeltaTime()));
-			}
-			return true;
+	private static final double FPS_TITLE_REFRESH_RATE = 0.175;
+	private static double fpsTitleRefreshProgress = 0;
+	
+	public static Boolean fpsTitle(FrameLoopEvent event) {
+		fpsTitleRefreshProgress += event.deltaTime;
+		if (fpsTitleRefreshProgress > FPS_TITLE_REFRESH_RATE) {
+			fpsTitleRefreshProgress = 0;
+			event.getWindow().setTitle((int) (1 / event.deltaTime));
 		}
-	};
+		return true;
+	}
 }

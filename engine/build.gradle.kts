@@ -3,7 +3,7 @@ plugins {
 }
 
 tasks.jar {
-	manifest.attributes["Main-Class"] = "io.github.aemogie.timble.engine.Timble"
+	manifest.attributes["Main-Class"] = "io.github.aemogie.timble.engine.TimbleKt"
 }
 
 dependencies {
