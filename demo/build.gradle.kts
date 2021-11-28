@@ -1,9 +1,9 @@
 plugins {
-	id("com.github.johnrengelman.shadow") version "7.0.0"
+	id("com.github.johnrengelman.shadow") version shadowV
 }
 
 tasks.jar {
-	manifest.attributes["Main-Class"] = "io.github.aemogie.timble.engine.TimbleKt"
+	manifest.attributes["Main-Class"] = "io.github.aemogie.timble.demo.TimbleKt"
 }
 
 dependencies {

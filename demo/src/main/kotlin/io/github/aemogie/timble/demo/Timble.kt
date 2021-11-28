@@ -1,4 +1,4 @@
-package io.github.aemogie.timble.engine
+package io.github.aemogie.timble.demo
 
 import io.github.aemogie.timble.gl.OpenGL
 import io.github.aemogie.timble.gl.utils.Debug

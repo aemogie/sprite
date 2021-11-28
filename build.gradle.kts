@@ -1,40 +1,34 @@
-import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.ALL
-import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
-
 plugins {
-	kotlin("jvm") version "1.6.0"
+	kotlin("jvm") version kotlinV
 }
 
-val javaVersion = JavaVersion.VERSION_17
-
 tasks.wrapper {
-	gradleVersion = "7.3"
-	distributionType = ALL
+	gradleVersion = gradleV
+	distributionType = Wrapper.DistributionType.ALL
 }
 
 allprojects {
 	apply {
-		plugin(JavaLibraryPlugin::class)
-		plugin(KotlinPluginWrapper::class)
+		plugin("java-library")
+		plugin("org.jetbrains.kotlin.jvm")
 	}
 	
 	group = "io.github.aemogie.timble"
-	version = "0.1.0"
+	version = projectV
 	
 	java {
-		sourceCompatibility = javaVersion
-		targetCompatibility = javaVersion
+		sourceCompatibility = javaV
+		targetCompatibility = javaV
 		withSourcesJar()
 		withJavadocJar()
 	}
 	
 	kotlin.target.compilations.forEach {
-		it.kotlinOptions.jvmTarget = javaVersion.toString()
+		it.kotlinOptions.jvmTarget = javaV.toString()
 	}
 	
 	repositories { mavenCentral() }
 	
-	@Suppress("GradlePackageUpdate")
 	dependencies {
 		implementation(kotlin("stdlib-jdk8"))
 		implementation(kotlin("reflect"))
