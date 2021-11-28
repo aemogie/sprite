@@ -26,14 +26,15 @@ class ConsoleLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 		return true
 	}
 	
-	override fun format(record: LogRecord, current: String): String = String.format(
-		"%1\$s[%2\$tH:%2\$tM:%2\$tS] [%3$5s|%4$5s] [%5\$s]%6\$s %7\$s%n",
-		LogLevelColours.valueOf(record.level.name).colour,
-		record.instant.toEpochMilli(),
-		record.thread.name.removePrefix("Thread-"),
-		record.level,
-		record.caller.className.substringAfterLast('.'),
-		ANSIModifier.of(RESET),
-		current
-	)
+	override fun format(record: LogRecord, current: String): String = record.instant.toEpochMilli().let {
+		"%s[%tH:%tM:%tS] [%5s|%5s] [%s]%s %s%n".format(
+			LogLevelColours.valueOf(record.level.name).colour,
+			it, it, it,
+			record.thread.name.removePrefix("Thread-"),
+			record.level,
+			record.caller.className.substringAfterLast('.'),
+			ANSIModifier.of(RESET),
+			current
+		)
+	}
 }

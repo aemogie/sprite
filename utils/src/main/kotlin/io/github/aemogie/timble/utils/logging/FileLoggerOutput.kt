@@ -44,12 +44,13 @@ class FileLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 		}
 	}
 	
-	override fun format(record: LogRecord, current: String): String = String.format(
-		"[%1\$tH:%1\$tM:%1\$tS] [%2$5s|%3$5s] [%4\$s] %5\$s%n",
-		record.instant.toEpochMilli(),
-		record.thread.name,
-		record.level,
-		record.caller.className,
-		current
-	)
+	override fun format(record: LogRecord, current: String): String = record.instant.toEpochMilli().let {
+		"[%tH:%tM:%tS] [%5s|%5s] [%s] %s%n".format(
+			it, it, it,
+			record.thread.name,
+			record.level,
+			record.caller.className,
+			current
+		)
+	}
 }
