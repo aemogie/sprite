@@ -18,49 +18,42 @@ internal val records = ArrayDeque<LogRecord>()
 //[1] = Logger#(*)
 //[2] = Caller#method
 
-fun info(msg: Any?): Boolean = synchronized(records) {
+fun info(msg: Any?) = synchronized(records) {
 	if (msg != null) records.add(LogRecord(INFO, currentThread(), currentThread().stackTrace[2], now(), msg))
-	true
 }
 
-fun debug(msg: Any?): Boolean = synchronized(records) {
+fun debug(msg: Any?) = synchronized(records) {
 	if (msg != null) records.add(LogRecord(DEBUG, currentThread(), currentThread().stackTrace[2], now(), msg))
-	true
 }
 
-fun warn(msg: Any?): Boolean = synchronized(records) {
+fun warn(msg: Any?) = synchronized(records) {
 	if (msg != null) records.add(LogRecord(WARN, currentThread(), currentThread().stackTrace[2], now(), msg))
-	true
 }
 
-fun error(msg: Any?): Boolean = synchronized(records) {
+fun error(msg: Any?) = synchronized(records) {
 	if (msg != null) records.add(LogRecord(ERROR, currentThread(), currentThread().stackTrace[2], now(), msg))
-	true
 }
 
-fun fatal(msg: Any?): Boolean = synchronized(records) {
+fun fatal(msg: Any?) = synchronized(records) {
 	if (msg != null) records.add(LogRecord(FATAL, currentThread(), currentThread().stackTrace[2], now(), msg))
-	true
 }
 
 private val SYS_OUT: PrintStream = System.out
 private val SYS_ERR: PrintStream = System.err
 
-fun replaceDefault(): Boolean {
+fun replaceDefault() {
 	System.setOut(LoggerPrintStream(INFO))
 	System.setErr(LoggerPrintStream(ERROR))
-	return true
 }
 
-fun restoreDefault(): Boolean {
+fun restoreDefault() {
 	System.setOut(SYS_OUT)
 	System.setErr(SYS_ERR)
-	return true
 }
 
 const val CONFIG_PATH: String = "/META-INF/timble-logger.json"
 
-fun start(): Boolean {
+fun start() {
 	//init
 	outputs += getResourceReader(CONFIG_PATH, ::JsonStreamParser).next().asJsonArray.map {
 		LoggerOutput.of(it.asJsonObject)
@@ -69,7 +62,7 @@ fun start(): Boolean {
 	
 	//run
 	thread(start = true, isDaemon = true, name = "Logger") {
-		//NOTE: locking even when the value is empty might be bad. also might have to lock `outputs`
+		//todo: replace w/ blocking queue (`LinkedBlockingQueue`)
 		while (true) synchronized(records) {
 			records.poll()?.also { outputs.forEach { out -> out.log(it) } }
 		}
@@ -83,7 +76,6 @@ fun start(): Boolean {
 		outputs.forEach(LoggerOutput::destroy)
 		restoreDefault()
 	})
-	return true
 }
 
 enum class Level {

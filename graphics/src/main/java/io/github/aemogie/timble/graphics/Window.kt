@@ -32,16 +32,17 @@ open class Window(
 			glfwSetWindowTitle(windowPointer, value.also { field = it })
 		} else Unit
 	
-	private fun init(): Boolean {
+	private fun init() {
 		glfwSetErrorCallback { e, d -> throw GLFWException(e, d) }
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
 		windowPointer = glfwCreateWindow(width, height, title, NULL, NULL)
 		api.init(this)
 		glfwShowWindow(windowPointer)
-		return fire(InitEvent())
+		fire(InitEvent())
 	}
 	
-	private fun destroy() = fire(DestroyEvent()).also {
+	private fun destroy() {
+		fire(DestroyEvent())
 		glfwFreeCallbacks(windowPointer)
 		glfwDestroyWindow(windowPointer)
 		glfwTerminate()
@@ -50,16 +51,19 @@ open class Window(
 	
 	var elapsedTime = 0.0; private set
 	
-	fun run() = init().also {
-		if (it) while (!glfwWindowShouldClose(windowPointer)) {
+	fun run() {
+		init()
+		while (!glfwWindowShouldClose(windowPointer)) {
 			val dt = glfwGetTime() - elapsedTime
 			elapsedTime += dt
+			//todo: call is OpenGL specific, so move it
+			//and maybe even replace `api` w/ events entirely
 			glfwSwapBuffers(windowPointer)
 			glfwPollEvents()
-			val frame = FrameLoopEvent(dt)
-			if (!fire(frame)) glfwSetWindowShouldClose(windowPointer, true)
+			fire(FrameLoopEvent(dt))
 		}
-	} && destroy()
+		destroy()
+	}
 	
 	open inner class WindowEvent : Event() {
 		val window = this@Window

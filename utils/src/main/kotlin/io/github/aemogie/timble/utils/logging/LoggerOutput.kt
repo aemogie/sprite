@@ -41,20 +41,20 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 	}
 	
 	//called once per log
-	protected abstract fun print(text: String): Boolean
+	protected abstract fun print(text: String)
 	
 	//called per line in log content
 	abstract fun format(record: LogRecord, current: String): String
 	
-	internal fun log(record: LogRecord): Boolean {
-		return if (record.level.ordinal >= level.ordinal) {
+	internal fun log(record: LogRecord) {
+		if (record.level.ordinal >= level.ordinal) {
 			//if u use `\n` on Windows, that's on you.
 			print(record.content.toString().split(lineSeparator()).joinToString {
 				format(record, it)
 			})
-		} else false
+		}
 	}
 	
 	//optional destructor. for closing streams and writers.
-	internal open fun destroy(): Boolean = true
+	internal open fun destroy() = Unit
 }

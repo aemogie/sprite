@@ -5,17 +5,18 @@ import kotlin.reflect.KClass
 open class Event // :smiley:
 
 abstract class EventNode {
-	private val listeners = object : HashMap<KClass<out Event>, ArrayList<(Event) -> Boolean>>() {
+	//todo: jobs.
+	private val listeners = object : HashMap<KClass<out Event>, ArrayList<(Event) -> Unit>>() {
 		override operator fun get(key: KClass<out Event>) = super.get(key).let {
-			it ?: ArrayList<(Event) -> Boolean>().apply { super.put(key, this) }
+			it ?: ArrayList<(Event) -> Unit>().apply { super.put(key, this) }
 		}
 	}
 	
-	protected open fun <T : Event> fire(event: T) = listeners[event::class].all { it(event) }
+	protected open fun <T : Event> fire(event: T) = listeners[event::class].forEach { it(event) }
 	
 	@Suppress("UNCHECKED_CAST")
-	fun <T : Event> subscribe(clazz: KClass<T>, listener: (T) -> Boolean) = listener.also {
-		listeners[clazz] += it as (Event) -> Boolean
+	fun <T : Event> subscribe(clazz: KClass<T>, listener: (T) -> Unit) = listener.also {
+		listeners[clazz] += it as (Event) -> Unit
 	}
 }
 

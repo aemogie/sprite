@@ -18,12 +18,11 @@ class ConsoleLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 		ERROR(ANSIModifier.of(BOLD, RED_FG))
 	}
 	
-	override fun print(text: String): Boolean {
+	override fun print(text: String) {
 		(if (level.ordinal >= WARN.ordinal) STD_ERR else STD_OUT).also {
 			it.write(text.toByteArray())
 			it.flush()
 		}
-		return true
 	}
 	
 	override fun format(record: LogRecord, current: String): String = record.instant.toEpochMilli().let {

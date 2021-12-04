@@ -5,14 +5,14 @@ import io.github.aemogie.timble.gl.utils.legacyTriangle
 import io.github.aemogie.timble.graphics.Window
 import io.github.aemogie.timble.graphics.Window.*
 import io.github.aemogie.timble.graphics.utils.fpsTitle
-import io.github.aemogie.timble.utils.logging.*
+import io.github.aemogie.timble.utils.logging.debug
+import io.github.aemogie.timble.utils.logging.start
 
 private val window: Window = Window(OpenGL())
 
-private fun scream(): Boolean {
+private fun scream() {
 	window.subscribe(InitEvent::class) { debug("initializing your window!") }
 	window.subscribe(DestroyEvent::class) { debug("sorry! we have to destroy your window...") }
-	return true
 }
 
 fun main(vararg args: String) {
@@ -21,7 +21,7 @@ fun main(vararg args: String) {
 		if (args.contains("--scream")) scream()
 		window.subscribe(FrameLoopEvent::class, ::fpsTitle)
 		window.subscribe(FrameLoopEvent::class) { legacyTriangle() }
-		if (!window.run()) error("oh no! we got an error while running the window :(")
+		window.run()
 	} catch (e: Exception) {
 		e.printStackTrace()
 	}

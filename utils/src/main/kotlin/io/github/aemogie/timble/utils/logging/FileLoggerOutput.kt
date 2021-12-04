@@ -20,28 +20,20 @@ class FileLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 		parentFile.apply { if (!exists()) mkdirs() }
 	}))
 	
-	override fun print(text: String): Boolean {
-		return try {
-			file.write(text)
-			true
-		} catch (e: IOException) {
-			STD_ERR.write("Unable to write to log file \"$path\"\n".toByteArray())
-			STD_ERR.write("${e.message}\n".toByteArray())
-			STD_ERR.flush()
-			false
-		}
+	override fun print(text: String) = try {
+		file.write(text)
+	} catch (e: IOException) {
+		STD_ERR.write("Unable to write to log file \"$path\"\n".toByteArray())
+		STD_ERR.write("${e.message}\n".toByteArray())
+		STD_ERR.flush()
 	}
 	
-	override fun destroy(): Boolean {
-		return try {
-			file.close()
-			true
-		} catch (e: IOException) {
-			STD_ERR.write("Unable to close log file \"$path\"\n".toByteArray())
-			STD_ERR.write("${e.message}\n".toByteArray())
-			STD_ERR.flush()
-			false
-		}
+	override fun destroy() = try {
+		file.close()
+	} catch (e: IOException) {
+		STD_ERR.write("Unable to close log file \"$path\"\n".toByteArray())
+		STD_ERR.write("${e.message}\n".toByteArray())
+		STD_ERR.flush()
 	}
 	
 	override fun format(record: LogRecord, current: String): String = record.instant.toEpochMilli().let {
