@@ -1,7 +1,5 @@
-package io.github.aemogie.timble.graphics;
+package io.github.aemogie.timble.graphics
 
-public class GraphicsAPI {
-	protected boolean init(Window window) {
-		return true;
-	}
+open class GraphicsAPI {
+	open fun init(window: Window) = true
 }

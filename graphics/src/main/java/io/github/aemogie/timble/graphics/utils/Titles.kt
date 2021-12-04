@@ -1,19 +1,13 @@
-package io.github.aemogie.timble.graphics.utils;
+package io.github.aemogie.timble.graphics.utils
 
-import io.github.aemogie.timble.graphics.Window.FrameLoopEvent;
+import io.github.aemogie.timble.graphics.Window
 
-public final class Titles {
-	private Titles() {}
-	
-	private static final double FPS_TITLE_REFRESH_RATE = 0.175;
-	private static double fpsTitleRefreshProgress = 0;
-	
-	public static Boolean fpsTitle(FrameLoopEvent event) {
-		fpsTitleRefreshProgress += event.deltaTime;
-		if (fpsTitleRefreshProgress > FPS_TITLE_REFRESH_RATE) {
-			fpsTitleRefreshProgress = 0;
-			event.getWindow().setTitle((int) (1 / event.deltaTime));
-		}
-		return true;
+private const val TITLE_REFRESH_RATE = 0.175
+private var fpsProgress = 0.0
+fun fpsTitle(event: Window.FrameLoopEvent) = true.also {
+	fpsProgress += event.deltaTime
+	if (fpsProgress > TITLE_REFRESH_RATE) {
+		fpsProgress = 0.0
+		event.window.title = (1 / event.deltaTime).toInt().toString()
 	}
 }
