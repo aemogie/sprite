@@ -8,3 +8,4 @@ build
 # idk
 logs
 out
+*.ngfx-proj
