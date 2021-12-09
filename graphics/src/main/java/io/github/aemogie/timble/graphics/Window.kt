@@ -1,73 +1,64 @@
 package io.github.aemogie.timble.graphics
 
-import io.github.aemogie.timble.graphics.utils.*
+import io.github.aemogie.timble.graphics.utils.GLFWException
+import io.github.aemogie.timble.graphics.utils.GLFWInitializationException
+import io.github.aemogie.timble.graphics.utils.WindowCreationException
 import io.github.aemogie.timble.utils.Event
 import io.github.aemogie.timble.utils.EventNode
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.system.MemoryUtil.NULL
 
 open class Window(
-	private val api: GraphicsAPI,
 	width: Int = 480,
 	height: Int = 480,
 	title: String = "timble. engine. (by aemogie.)",
 ) : EventNode() {
-	private companion object {
-		init {
+	companion object {
+		private val errorCallback = GLFWErrorCallback.create { e: Int, d: Long -> throw GLFWException(e, d) }
+
+		fun init() {
 			if (!glfwInit()) throw GLFWInitializationException()
+			errorCallback.set()
+		}
+
+		fun destroy() {
+			errorCallback.free()
+			glfwTerminate()
 		}
 	}
-	
+
 	var windowPointer = NULL
-		private set(value) {
-			if (value == NULL) throw WindowCreationException()
-			else field = value
-		}
-	
+		get() = if (field == NULL) glfwCreateWindow(width, height, title, NULL, NULL).also {
+			if (it == NULL) throw WindowCreationException() else field = it
+		} else field
+		private set
+
 	var width = width; private set
 	var height = height; private set
 	var title: String = title
 		set(value) = if (value != field) {
 			glfwSetWindowTitle(windowPointer, value.also { field = it })
 		} else Unit
-	
-	private fun init() {
-		glfwSetErrorCallback { e, d -> throw GLFWException(e, d) }
-		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-		windowPointer = glfwCreateWindow(width, height, title, NULL, NULL)
-		api.init(this)
-		glfwShowWindow(windowPointer)
+
+	var elapsedTime = 0.0; private set
+
+	fun run() {
 		fire(InitEvent())
-	}
-	
-	private fun destroy() {
+		while (!glfwWindowShouldClose(windowPointer)) {
+			glfwPollEvents()
+			fire(FrameLoopEvent((glfwGetTime() - elapsedTime).also { elapsedTime += it }))
+		}
 		fire(DestroyEvent())
 		glfwFreeCallbacks(windowPointer)
 		glfwDestroyWindow(windowPointer)
-		glfwTerminate()
-		glfwSetErrorCallback(null)?.free()
 	}
-	
-	var elapsedTime = 0.0; private set
-	
-	fun run() {
-		init()
-		while (!glfwWindowShouldClose(windowPointer)) {
-			val dt = glfwGetTime() - elapsedTime
-			elapsedTime += dt
-			//todo: call is OpenGL specific, so move it
-			//and maybe even replace `api` w/ events entirely
-			glfwSwapBuffers(windowPointer)
-			glfwPollEvents()
-			fire(FrameLoopEvent(dt))
-		}
-		destroy()
-	}
-	
+
 	open inner class WindowEvent : Event() {
 		val window = this@Window
 	}
+
 	inner class InitEvent : WindowEvent()
 	inner class FrameLoopEvent(val deltaTime: Double) : WindowEvent()
 	inner class DestroyEvent : WindowEvent()

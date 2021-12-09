@@ -1,13 +1,16 @@
 package io.github.aemogie.timble.gl
 
-import io.github.aemogie.timble.graphics.GraphicsAPI
 import io.github.aemogie.timble.graphics.Window
 import org.lwjgl.glfw.GLFW.glfwMakeContextCurrent
+import org.lwjgl.glfw.GLFW.glfwSwapBuffers
 import org.lwjgl.opengl.GL
 
-class OpenGL : GraphicsAPI() {
-	override fun init(window: Window) {
-		glfwMakeContextCurrent(window.windowPointer)
+fun Window.useOpenGL() {
+	subscribe(Window.InitEvent::class) {
+		glfwMakeContextCurrent(windowPointer)
 		GL.createCapabilities()
+	}
+	subscribe(Window.FrameLoopEvent::class) {
+		glfwSwapBuffers(windowPointer)
 	}
 }
