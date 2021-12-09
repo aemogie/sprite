@@ -11,7 +11,7 @@ import java.time.Instant.now
 import java.util.*
 import kotlin.concurrent.thread
 
-private val outputs = ArrayList<LoggerOutput>()
+private val outputs = arrayListOf<LoggerOutput>()
 internal val records = ArrayDeque<LogRecord>()
 
 //[0] = Thread#getStackTrace
@@ -19,63 +19,60 @@ internal val records = ArrayDeque<LogRecord>()
 //[2] = Caller#method
 
 fun info(msg: Any?) = synchronized(records) {
-	if (msg != null) records.add(LogRecord(INFO, currentThread(), currentThread().stackTrace[2], now(), msg))
+	if (msg != null) records += LogRecord(INFO, currentThread(), currentThread().stackTrace[2], now(), msg)
 }
 
 fun debug(msg: Any?) = synchronized(records) {
-	if (msg != null) records.add(LogRecord(DEBUG, currentThread(), currentThread().stackTrace[2], now(), msg))
+	if (msg != null) records += LogRecord(DEBUG, currentThread(), currentThread().stackTrace[2], now(), msg)
 }
 
 fun warn(msg: Any?) = synchronized(records) {
-	if (msg != null) records.add(LogRecord(WARN, currentThread(), currentThread().stackTrace[2], now(), msg))
+	if (msg != null) records += LogRecord(WARN, currentThread(), currentThread().stackTrace[2], now(), msg)
 }
 
 fun error(msg: Any?) = synchronized(records) {
-	if (msg != null) records.add(LogRecord(ERROR, currentThread(), currentThread().stackTrace[2], now(), msg))
+	if (msg != null) records += LogRecord(ERROR, currentThread(), currentThread().stackTrace[2], now(), msg)
 }
 
 fun fatal(msg: Any?) = synchronized(records) {
-	if (msg != null) records.add(LogRecord(FATAL, currentThread(), currentThread().stackTrace[2], now(), msg))
+	if (msg != null) records += LogRecord(FATAL, currentThread(), currentThread().stackTrace[2], now(), msg)
 }
 
 private val SYS_OUT: PrintStream = System.out
 private val SYS_ERR: PrintStream = System.err
 
-fun replaceDefault() {
+fun replaceStandardOut() {
 	System.setOut(LoggerPrintStream(INFO))
 	System.setErr(LoggerPrintStream(ERROR))
 }
 
-fun restoreDefault() {
+fun restoreStandardOut() {
 	System.setOut(SYS_OUT)
 	System.setErr(SYS_ERR)
 }
 
 const val CONFIG_PATH: String = "/META-INF/timble-logger.json"
 
-fun start() {
-	//init
-	outputs += getResourceReader(CONFIG_PATH, ::JsonStreamParser).next().asJsonArray.map {
-		LoggerOutput.of(it.asJsonObject)
-	}
-	replaceDefault()
-	
-	//run
-	thread(start = true, isDaemon = true, name = "Logger") {
-		//todo: replace w/ blocking queue (`LinkedBlockingQueue`)
-		while (true) synchronized(records) {
-			records.poll()?.also { outputs.forEach { out -> out.log(it) } }
+fun startLogger(replace: Boolean = true): Thread {
+	var parent = currentThread()
+	return thread(start = true, name = "Logger") {
+		if (parent.isDaemon) parent = Thread.getAllStackTraces().keys.single { it.id == 1L }
+		
+		outputs += getResourceReader(CONFIG_PATH, ::JsonStreamParser).next().asJsonArray.map {
+			LoggerOutput.of(it.asJsonObject)
 		}
-	}
-	
-	//cleanup
-	Runtime.getRuntime().addShutdownHook(thread(start = false, name = "Logger.ShutDown") {
-		synchronized(records) {
-			records.forEach { outputs.forEach { out -> out.log(it) } }
+		if (replace) replaceStandardOut()
+		
+		//blocking queue doesn't work because it blocks inside while loop
+		//even when logger is over, making it not possible to exit out of while loop.
+		while (!currentThread().isInterrupted && parent.isAlive) if (records.isNotEmpty()) {
+			synchronized(records) { records.poll()?.also { outputs.forEach { out -> out.log(it) } } }
 		}
+		
+		records.forEach { for (out in outputs) out.log(it) }
 		outputs.forEach(LoggerOutput::destroy)
-		restoreDefault()
-	})
+		if (replace) restoreStandardOut()
+	}
 }
 
 enum class Level {

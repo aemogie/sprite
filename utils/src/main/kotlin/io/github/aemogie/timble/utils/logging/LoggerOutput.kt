@@ -17,10 +17,7 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 			} else it
 		}.let { name ->
 			Class.forName(name).kotlin.let {
-				if (it.isSubclassOf(LoggerOutput::class)) it
-				else null
-			}.let {
-				if (it == null) {
+				if (!it.isSubclassOf(LoggerOutput::class)) {
 					STD_ERR.write("Logger Class \"$name\" does not extend LoggerOutput.\n".toByteArray())
 					exitProcess(-1)
 				} else it
