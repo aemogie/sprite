@@ -21,16 +21,15 @@ enum class ANSIModifier(internal val mod: Int) {
 	MAGENTA_BG(45),
 	CYAN_BG(46),
 	WHITE_BG(47),
-	DEFAULT_BG(49),
-	;
+	DEFAULT_BG(49);
+
 	companion object {
 		//dk if this adds more overhead, but hey sometimes i wanna feel like im optimizing even when it's the opposite.
 		private val cache: HashMap<List<ANSIModifier>, String> = HashMap(32)
-		@JvmStatic fun of(vararg mod: ANSIModifier): String = cache.computeIfAbsent(mod.toList()) {
+
+		fun of(vararg mod: ANSIModifier): String = cache.computeIfAbsent(mod.toList()) {
 			mod.joinToString(
-				separator = ";",
-				prefix = "\u001b[",
-				postfix = "m"
+				separator = ";", prefix = "\u001b[", postfix = "m"
 			) { it.mod.toString() }
 		}
 	}

@@ -14,15 +14,15 @@ private val lwjglNatives = arrayOf(
 
 fun DependencyHandler.lwjgl(dependency: String) = ArrayList<Dependency>().also { dependencies ->
 	if (dependency == "core") {
-		
+
 		dependencies += lwjglNatives.map { create("org.lwjgl:lwjgl:$lwjglV:natives-$it") }
 		dependencies += create("org.lwjgl:lwjgl:$lwjglV")
 		dependencies += create(platform("org.lwjgl:lwjgl-bom:$lwjglV"))
-		
+
 	} else "org.lwjgl:lwjgl-$dependency:$lwjglV".let { dependencyNotation ->
-		
+
 		dependencies += lwjglNatives.map { create("$dependencyNotation:natives-$it") }
 		dependencies += create(dependencyNotation)
-		
+
 	}
 }

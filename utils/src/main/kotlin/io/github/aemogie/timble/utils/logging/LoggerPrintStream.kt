@@ -19,7 +19,7 @@ class LoggerPrintStream( //could make internal but you never know
 			level, currentThread(), currentThread().stackTrace[3], now(), content.removeSuffix(lineSeparator())
 		)
 	}
-	
+
 	//region PrintStream#print(ln)
 	override fun println() = write("")
 	override fun println(x: Boolean) = write(x.toString())
@@ -53,9 +53,8 @@ class LoggerPrintStream( //could make internal but you never know
 	override fun print(x: String?) = write(x.toString())
 	override fun print(x: Any?) = write(x.toString())
 	//endregion
-	
+
 	//region Delete
-	
 	override fun write(b: Int) = Unit
 	override fun write(buf: ByteArray, off: Int, len: Int) = Unit
 	override fun write(buf: ByteArray) = Unit
@@ -63,7 +62,7 @@ class LoggerPrintStream( //could make internal but you never know
 	override fun close() = Unit
 	override fun flush() = Unit
 	//endregion
-	
+
 	class NullOutputStream : OutputStream() {
 		override fun write(b: Int) = Unit
 		override fun write(b: ByteArray) = Unit

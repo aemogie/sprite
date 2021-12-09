@@ -2,8 +2,10 @@
 
 package io.github.aemogie.timble.utils.console
 
-import java.io.*
+import java.io.FileDescriptor
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
-@JvmField val STD_OUT: FileOutputStream = FileOutputStream(FileDescriptor.out)
-@JvmField val STD_ERR: FileOutputStream = FileOutputStream(FileDescriptor.err)
-@JvmField val STD_IN: FileInputStream = FileInputStream(FileDescriptor.`in`)
+val STD_OUT: FileOutputStream = FileOutputStream(FileDescriptor.out)
+val STD_ERR: FileOutputStream = FileOutputStream(FileDescriptor.err)
+val STD_IN: FileInputStream = FileInputStream(FileDescriptor.`in`)

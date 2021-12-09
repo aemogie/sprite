@@ -1,20 +1,27 @@
 # timble.
-"timble." is a general purpose game engine. 
-this... is the 3rd game engine i create with the same name. hopefully this is gonna be more long-term.
+
+"timble." is a general purpose game engine. this... is the 3rd game engine i create with the same name. hopefully this
+is gonna be more long-term.
 
 ## utils.
-1. :white_check_mark: logger.
-2. :white_check_mark: event system.
+
+- [x] logger.
+- [x] event system.
 
 ## gl.
-1. :white_check_mark: GLFW.
+
+- [x] GLFW.
 
 ## ui.
-1. :negative_squared_cross_mark: --
+
+- [ ] --
 
 ## engine.
-1. :white_check_mark: primitive class. (still in `gl.` tho.)
+
+- [x] primitive class. (still in `gl.` tho.)
 
 ---
+
 # credits.
+
 huge thanks to [JetBrains](https://www.jetbrains.com/community/opensource/) for providing the licenses for this project!

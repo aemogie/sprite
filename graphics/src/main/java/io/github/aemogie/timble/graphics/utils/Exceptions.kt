@@ -12,9 +12,8 @@ class GLFWException(error: Int, description: Long) : RuntimeException(
 ) {
 	private companion object {
 		val ERROR_CODES: MutableMap<Int, String> = apiClassTokens(
-			{ _, value -> value in 0x10000..0x1FFFF }, //errors enums are in the 0x1XXXX range.
-			null,
-			GLFW::class.java
+			//errors enums are in the 0x1XXXX range.
+			{ _, value -> value in 0x10000..0x1FFFF }, null, GLFW::class.java
 		)
 	}
 }

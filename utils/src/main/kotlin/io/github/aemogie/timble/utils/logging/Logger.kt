@@ -1,5 +1,4 @@
-@file:JvmName("Logger")
-@file:Suppress("unused") //for unused log methods.
+@file:JvmName("Logger") @file:Suppress("unused") //for unused log methods.
 package io.github.aemogie.timble.utils.logging
 
 import com.google.gson.JsonStreamParser
@@ -57,24 +56,22 @@ fun startLogger(replace: Boolean = true): Thread {
 	var parent = currentThread()
 	return thread(start = true, name = "Logger") {
 		if (parent.isDaemon) parent = Thread.getAllStackTraces().keys.single { it.id == 1L }
-		
+
 		outputs += getResourceReader(CONFIG_PATH, ::JsonStreamParser).next().asJsonArray.map {
 			LoggerOutput.of(it.asJsonObject)
 		}
 		if (replace) replaceStandardOut()
-		
+
 		//blocking queue doesn't work because it blocks inside while loop
 		//even when logger is over, making it not possible to exit out of while loop.
 		while (!currentThread().isInterrupted && parent.isAlive) if (records.isNotEmpty()) {
 			synchronized(records) { records.poll()?.also { outputs.forEach { out -> out.log(it) } } }
 		}
-		
+
 		records.forEach { for (out in outputs) out.log(it) }
 		outputs.forEach(LoggerOutput::destroy)
 		if (replace) restoreStandardOut()
 	}
 }
 
-enum class Level {
-	ALL, INFO, DEBUG, WARN, ERROR, FATAL;
-}
+enum class Level { ALL, INFO, DEBUG, WARN, ERROR, FATAL }

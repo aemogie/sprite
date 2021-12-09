@@ -1,3 +1,3 @@
 dependencies {
-    implementation(projects.utils)
+	implementation(projects.utils)
 }

@@ -31,18 +31,18 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 			}.call(config) as LoggerOutput
 		}
 	}
-	
+
 	val level = config["level"]?.asString?.uppercase(Locale.ENGLISH).let {
 		if (it == null) Level.values()[0]
 		else Level.valueOf(it)
 	}
-	
+
 	//called once per log
 	protected abstract fun print(text: String)
-	
+
 	//called per line in log content
 	abstract fun format(record: LogRecord, current: String): String
-	
+
 	internal fun log(record: LogRecord) {
 		if (record.level.ordinal >= level.ordinal) {
 			//if u use `\n` on Windows, that's on you.
@@ -51,7 +51,7 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 			})
 		}
 	}
-	
+
 	//optional destructor. for closing streams and writers.
 	internal open fun destroy() = Unit
 }
