@@ -1,7 +1,7 @@
 package io.github.aemogie.timble.utils.console
 
 @Suppress("unused") //maybe can use jline?
-enum class ANSIModifier(internal val mod: Int) {
+enum class ANSIModifier(private val mod: Int) {
 	RESET(0),
 	BOLD(1),
 	BLACK_FG(30),
@@ -27,7 +27,7 @@ enum class ANSIModifier(internal val mod: Int) {
 		//dk if this adds more overhead, but hey sometimes i wanna feel like im optimizing even when it's the opposite.
 		private val cache: HashMap<List<ANSIModifier>, String> = HashMap(32)
 
-		fun of(vararg mod: ANSIModifier): String = cache.computeIfAbsent(mod.toList()) {
+		operator fun invoke(vararg mod: ANSIModifier): String = cache.computeIfAbsent(mod.toList()) {
 			mod.joinToString(
 				separator = ";", prefix = "\u001b[", postfix = "m"
 			) { it.mod.toString() }

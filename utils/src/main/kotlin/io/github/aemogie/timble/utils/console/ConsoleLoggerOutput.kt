@@ -11,11 +11,11 @@ class ConsoleLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 
 	//a hashmap would be syntactically cleaner, but eh.
 	enum class LogLevelColours(internal val colour: String) {
-		ALL(ANSIModifier.of(BOLD, DEFAULT_FG)),
-		INFO(ANSIModifier.of(BOLD, GREEN_FG)),
-		DEBUG(ANSIModifier.of(BOLD, BLUE_FG)),
-		WARN(ANSIModifier.of(BOLD, YELLOW_FG)),
-		ERROR(ANSIModifier.of(BOLD, RED_FG))
+		ALL(ANSIModifier(BOLD, DEFAULT_FG)),
+		INFO(ANSIModifier(BOLD, GREEN_FG)),
+		DEBUG(ANSIModifier(BOLD, BLUE_FG)),
+		WARN(ANSIModifier(BOLD, YELLOW_FG)),
+		ERROR(ANSIModifier(BOLD, RED_FG))
 	}
 
 	override fun print(text: String) {
@@ -32,7 +32,7 @@ class ConsoleLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 			record.thread.name.removePrefix("Thread-"),
 			record.level,
 			record.caller.className.substringAfterLast('.'),
-			ANSIModifier.of(RESET),
+			ANSIModifier(RESET),
 			current
 		)
 	}
