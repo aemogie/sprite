@@ -7,7 +7,7 @@ import java.io.FileNotFoundException
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
 
-val clazz: Class<*> = object : Any() {}::class.java.enclosingClass
+val clazz = object : Any() {}::class.java.enclosingClass!!
 
 inline fun <reified T> getResourceBytes(
 	@Language("file-reference") path: String,
