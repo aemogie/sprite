@@ -8,18 +8,17 @@ import io.github.aemogie.timble.utils.application.application
 import io.github.aemogie.timble.utils.logging.info
 import io.github.aemogie.timble.utils.logging.startLogger
 
-private val window: Window = Window()
-
-private fun scream() {
+private fun scream(window: Window) {
 	window.subscribe<Window.InitEvent> { info("initializing your window!") }
 	window.subscribe<Window.DestroyEvent> { info("sorry! we have to destroy your window...") }
 }
 
 fun main(vararg args: String) = application {
 	startLogger()
-	if (args.contains("--scream")) scream()
+	val window = Window(title = "1")
 	window.useOpenGL()
 	window.subscribe(::fpsTitle)
 	window.subscribe(::legacyTriangle)
-	window.run()
+	if (args.contains("--scream")) scream(window)
+	window.run().join()
 }
