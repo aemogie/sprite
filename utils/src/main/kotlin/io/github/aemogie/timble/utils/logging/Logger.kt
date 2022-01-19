@@ -1,42 +1,43 @@
-@file:JvmName("Logger") @file:Suppress("unused") //for unused log methods.
+@file:Suppress("unused") //for unused log methods.
 package io.github.aemogie.timble.utils.logging
 
+import io.github.aemogie.timble.utils.application.ApplicationExitEvent
+import io.github.aemogie.timble.utils.application.ApplicationScope
+import io.github.aemogie.timble.utils.application.EventBus
 import io.github.aemogie.timble.utils.getResourceText
 import io.github.aemogie.timble.utils.logging.Level.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import java.io.PrintStream
-import java.lang.Thread.currentThread
-import java.time.Instant.now
+import java.time.Instant
 import java.util.*
 import kotlin.concurrent.thread
 
-private val outputs = arrayListOf<LoggerOutput>()
-internal val records = ArrayDeque<LogRecord>()
+private val outputs = Collections.synchronizedList(arrayListOf<LoggerOutput>())
+private val records = ArrayDeque<LogRecord>()
 
-//[0] = Thread#getStackTrace
-//[1] = Logger#(*)
-//[2] = Caller#method
+// psst! try using a lambda...
+fun info(content: Any?) = log(content, INFO)
+fun debug(content: Any?) = log(content, DEBUG)
+fun warn(content: Any?) = log(content, WARN)
+fun error(content: Any?) = log(content, ERROR)
+fun fatal(content: Any?) = log(content, FATAL)
 
-fun info(msg: Any?) = synchronized(records) {
-	if (msg != null) records += LogRecord(INFO, currentThread(), currentThread().stackTrace[2], now(), msg)
-}
-
-fun debug(msg: Any?) = synchronized(records) {
-	if (msg != null) records += LogRecord(DEBUG, currentThread(), currentThread().stackTrace[2], now(), msg)
-}
-
-fun warn(msg: Any?) = synchronized(records) {
-	if (msg != null) records += LogRecord(WARN, currentThread(), currentThread().stackTrace[2], now(), msg)
-}
-
-fun error(msg: Any?) = synchronized(records) {
-	if (msg != null) records += LogRecord(ERROR, currentThread(), currentThread().stackTrace[2], now(), msg)
-}
-
-fun fatal(msg: Any?) = synchronized(records) {
-	if (msg != null) records += LogRecord(FATAL, currentThread(), currentThread().stackTrace[2], now(), msg)
+internal fun log(
+	content: Any?,
+	level: Level,
+	// 0 - Thread.getStackTrace
+	// 1 - current method
+	// 2 - wrapper log methods
+	// 2 - Caller.method
+	thread: Thread = Thread.currentThread(),
+	caller: StackTraceElement = thread.stackTrace[3],
+	instant: Instant = Instant.now()
+) {
+	if (content != null) LogRecord(level, thread, caller, instant, content).also {
+		synchronized(records) { records += it }
+	}
 }
 
 private val SYS_OUT: PrintStream = System.out
@@ -54,26 +55,34 @@ fun restoreStandardOut() {
 
 const val CONFIG_PATH: String = "/META-INF/timble-logger.json"
 
-fun startLogger(replace: Boolean = true): Thread {
-	var parent = currentThread()
-	return thread(start = true, name = "Logger") {
-		if (parent.isDaemon) parent = Thread.getAllStackTraces().keys.single { it.id == 1L }
+@Volatile
+private var stayAlive = true
 
-		outputs += getResourceText(CONFIG_PATH, Json::parseToJsonElement).jsonArray.mapNotNull {
-			LoggerOutput.of(it.jsonObject)
+fun ApplicationScope.startLogger(replace: Boolean = true) {
+	outputs += getResourceText(CONFIG_PATH) {
+		Json.parseToJsonElement(it)
+	}.jsonArray.asSequence().map {
+		it.jsonObject
+	}.map {
+		LoggerOutput.of(it)
+	}.toList()
+
+	if (replace) replaceStandardOut()
+
+	EventBus.subscribe<ApplicationExitEvent> {
+		stayAlive = false
+		synchronized(records) {
+			records.forEach { outputs.forEach { out -> out.log(it) } }
 		}
-
-		if (replace) replaceStandardOut()
-
-		//blocking queue doesn't work because it blocks inside while loop
-		//even when logger is over, making it not possible to exit out of while loop.
-		while (!currentThread().isInterrupted && parent.isAlive) if (records.isNotEmpty()) {
-			synchronized(records) { records.poll()?.also { outputs.forEach { out -> out.log(it) } } }
-		}
-
-		records.forEach { for (out in outputs) out.log(it) }
 		outputs.forEach(LoggerOutput::destroy)
 		if (replace) restoreStandardOut()
+	}
+
+	thread(start = true, name = "Logger") {
+		while (stayAlive) if (records.isNotEmpty()) synchronized(records) {
+			records.forEach { outputs.forEach { out -> out.log(it) } }
+			records.clear()
+		}
 	}
 }
 

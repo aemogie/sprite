@@ -12,6 +12,7 @@ sealed class ApplicationScope /*: QueuedThreadCreationScope()*/ {
 fun application(run: ApplicationScope.() -> Unit) = try {
 	if (Thread.currentThread().id == 1L) {
 		ApplicationScope.run()
+		EventBus.fire(ApplicationExitEvent)
 	} else throw IllegalStateException(
 		ANSIModifier(CYAN_FG) +
 		"application{}" +

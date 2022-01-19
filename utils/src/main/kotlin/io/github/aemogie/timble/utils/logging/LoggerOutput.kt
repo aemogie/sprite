@@ -1,9 +1,13 @@
 package io.github.aemogie.timble.utils.logging
 
 import io.github.aemogie.timble.utils.console.STD_ERR
+import io.github.aemogie.timble.utils.exitIfNull
+import io.github.aemogie.timble.utils.println
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.lang.System.lineSeparator
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
@@ -12,24 +16,39 @@ import kotlin.system.exitProcess
 
 abstract class LoggerOutput internal constructor(config: JsonObject) {
 	internal companion object {
-		fun of(config: JsonObject) = config["class"]?.jsonPrimitive?.contentOrNull.let {
-			if (it == null) {
-				STD_ERR.write("Logger config doesn't have a \"class\" value.\n".toByteArray())
+
+		private val throwableWriter = object : PrintWriter(StringWriter()) {
+			fun get(throwable: Throwable): String {
+				throwable.printStackTrace(this)
+				val buffer = (out as StringWriter).buffer
+				return synchronized(buffer) {
+					val ret = buffer.toString()
+					buffer.setLength(0)
+					ret
+				}
+			}
+		}
+
+		fun of(config: JsonObject): LoggerOutput {
+			val className = config["class"].exitIfNull {
+				STD_ERR.println("Logger config doesn't have a \"class\" value.")
+			}.jsonPrimitive.contentOrNull.exitIfNull {
+				STD_ERR.println("Logger Class can't be `null`.")
+			}
+
+			return runCatching {
+				Class.forName(className)
+			}.getOrElse {
+				STD_ERR.println("Logger Class \"$className\" could not be found.")
 				exitProcess(-1)
-			} else it
-		}.let { name ->
-			Class.forName(name).kotlin.let {
-				if (!it.isSubclassOf(LoggerOutput::class)) {
-					STD_ERR.write("Logger Class \"$name\" does not extend LoggerOutput.\n".toByteArray())
-					exitProcess(-1)
-				} else it
+			}.kotlin.takeIf {
+				it.isSubclassOf(LoggerOutput::class)
+			}.exitIfNull {
+				STD_ERR.println("Logger Class \"$className\" does not extend LoggerOutput.")
 			}.constructors.singleOrNull {
 				it.parameters.size == 1 && it.parameters[0].type.javaType == JsonObject::class.java
-			}.let {
-				if (it == null) {
-					STD_ERR.write("Logger Class \"$name\" does not have a valid constructor.\n".toByteArray())
-					exitProcess(-1)
-				} else it
+			}.exitIfNull {
+				STD_ERR.println("Logger Class \"$className\" does not have a valid constructor.")
 			}.call(config) as LoggerOutput
 		}
 	}
@@ -46,11 +65,18 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 	abstract fun format(record: LogRecord, current: String): String
 
 	internal fun log(record: LogRecord) {
+
+		fun LogRecord.getPrintable() = when (content) {
+			null -> "null"
+			is () -> Any? -> (content)().toString()
+			is Throwable -> throwableWriter.get(content)
+			is Array<*> -> content.contentToString()
+			else -> content.toString()
+		}
+
 		if (record.level.ordinal >= level.ordinal) {
 			//if u use `\n` on Windows, that's on you.
-			print(record.content.toString().split(lineSeparator()).joinToString {
-				format(record, it)
-			})
+			print(record.getPrintable().split(lineSeparator()).joinToString { format(record, it) })
 		}
 	}
 
