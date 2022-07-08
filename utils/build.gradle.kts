@@ -1,4 +1,9 @@
+@Suppress("DSL_SCOPE_VIOLATION")
+plugins {
+	alias(libs.plugins.kotlin.serialization)
+}
+
 dependencies {
-	compileOnly("org.jetbrains:annotations:$jbAnnotationsV")
-	api("org.jetbrains.kotlinx:kotlinx-serialization-json:$kx_serializationV")
+	compileOnly(libs.jetbrains.annotations)
+	implementation(libs.kotlinx.serialization.json)
 }

@@ -1,10 +1,19 @@
 dependencies {
 	implementation(projects.utils)
-	lwjgl("core").forEach(::api)
-	lwjgl("assimp").forEach(::api)
-	lwjgl("glfw").forEach(::api)
-	lwjgl("openal").forEach(::api)
-	lwjgl("stb").forEach(::api)
+	with(libs.lwjgl) {
+		api(core)
+		api(assimp)
+		api(glfw)
+		api(openal)
+		api(stb)
+		allLwjglNatives(core).forEach(::runtimeOnly)
+		allLwjglNatives(assimp).forEach(::runtimeOnly)
+		allLwjglNatives(glfw).forEach(::runtimeOnly)
+		allLwjglNatives(openal).forEach(::runtimeOnly)
+		allLwjglNatives(stb).forEach(::runtimeOnly)
+	}
 }
 
-subprojects { dependencies { api(project.parent!!) } }
+project.also { parent ->
+	subprojects { dependencies { api(parent) } }
+}

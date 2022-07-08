@@ -1,5 +1,6 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-	id("com.github.johnrengelman.shadow") version shadowV
+	alias(libs.plugins.shadow)
 }
 
 tasks.jar {

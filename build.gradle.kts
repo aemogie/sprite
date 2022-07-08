@@ -1,36 +1,31 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-	kotlin("jvm") version kotlinV
+	alias(libs.plugins.kotlin.jvm)
 }
 
 tasks.wrapper {
-	gradleVersion = gradleV
+	gradleVersion = "7.4.2"
 	distributionType = Wrapper.DistributionType.ALL
 }
 
-allprojects {
+subprojects {
 	apply {
-		plugin("java-library")
-		plugin("org.jetbrains.kotlin.jvm")
+		plugin("java-library") //api() configuration for gradle
+		plugin(rootProject.libs.plugins.kotlin.jvm.get().pluginId)
 	}
 
 	group = "io.github.aemogie.timble"
-	version = projectV
+	version = "0.1.0"
 
 	java {
-		sourceCompatibility = javaV
-		targetCompatibility = javaV
 		withSourcesJar()
 		withJavadocJar()
 	}
 
-	kotlin.target.compilations.forEach {
-		it.kotlinOptions.jvmTarget = javaV.toString()
-	}
-
-	repositories { mavenCentral() }
-
 	dependencies {
-		implementation(kotlin("stdlib-jdk8"))
-		implementation(kotlin("reflect"))
+		with(rootProject.libs.kotlin) {
+			implementation(stdlib.jdk8)
+			implementation(reflect)
+		}
 	}
 }

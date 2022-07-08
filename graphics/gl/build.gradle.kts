@@ -1,4 +1,7 @@
 dependencies {
 	implementation(projects.utils)
-	lwjgl("opengl").forEach(::api)
+	with(libs.lwjgl) {
+		api(opengl)
+		allLwjglNatives(opengl).forEach(::runtimeOnly)
+	}
 }

@@ -21,7 +21,7 @@ open class LoggerPrintStream(
 	override fun println(x: Long) = write(x.toString())
 	override fun println(x: Float) = write(x.toString())
 	override fun println(x: Double) = write(x.toString())
-	override fun println(x: CharArray?) = write(x.toString())
+	override fun println(x: CharArray) = write(x.toString())
 	override fun println(x: String?) = write(x.toString())
 	override fun println(x: Any?) = write(x.toString())
 	override fun print(x: Boolean) = write(x.toString())
@@ -30,7 +30,7 @@ open class LoggerPrintStream(
 	override fun print(x: Long) = write(x.toString())
 	override fun print(x: Float) = write(x.toString())
 	override fun print(x: Double) = write(x.toString())
-	override fun print(x: CharArray?) = write(x.toString())
+	override fun print(x: CharArray) = write(x.toString())
 	override fun print(x: String?) = write(x.toString())
 	override fun print(x: Any?) = write(x.toString())
 	//endregion
@@ -39,7 +39,6 @@ open class LoggerPrintStream(
 	override fun write(b: Int) = Unit
 	override fun write(buf: ByteArray, off: Int, len: Int) = Unit
 	override fun write(buf: ByteArray) = Unit
-	override fun writeBytes(buf: ByteArray?) = Unit
 	override fun close() = Unit
 	override fun flush() = Unit
 	//endregion
