@@ -1,12 +1,11 @@
 package io.github.aemogie.timble.utils.logging
 
-import java.io.OutputStream
 import java.io.PrintStream
 import java.lang.System.lineSeparator
 
 open class LoggerPrintStream(
 	private val level: Level
-) : PrintStream(NullOutputStream()) {
+) : PrintStream(nullOutputStream()) {
 	protected open fun write(content: String) = log(
 		content = content.removeSuffix(lineSeparator()),
 		level = level,
@@ -42,12 +41,4 @@ open class LoggerPrintStream(
 	override fun close() = Unit
 	override fun flush() = Unit
 	//endregion
-
-	class NullOutputStream : OutputStream() {
-		override fun write(b: Int) = Unit
-		override fun write(b: ByteArray) = Unit
-		override fun write(b: ByteArray, off: Int, len: Int) = Unit
-		override fun close() = Unit
-		override fun flush() = Unit
-	}
 }

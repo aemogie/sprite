@@ -1,8 +1,5 @@
 package io.github.aemogie.timble.graphics
 
-import io.github.aemogie.timble.graphics.utils.GLFWException
-import io.github.aemogie.timble.graphics.utils.GLFWInitializationException
-import io.github.aemogie.timble.graphics.utils.WindowCreationException
 import io.github.aemogie.timble.utils.Event
 import io.github.aemogie.timble.utils.EventNode
 import io.github.aemogie.timble.utils.application.ApplicationExitEvent
@@ -11,6 +8,7 @@ import io.github.aemogie.timble.utils.application.runOnMain
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.system.APIUtil
 import org.lwjgl.system.MemoryUtil.NULL
 import kotlin.concurrent.thread
 
@@ -19,12 +17,20 @@ open class Window(
 	height: Int = 480,
 	title: String = "timble. engine. (by aemogie.)",
 ) : EventNode() {
-	companion object {
-		private val errorCallback = GLFWErrorCallback.create { e, d -> throw GLFWException(e, d) }
+	private companion object {
+		val ERROR_CODES: MutableMap<Int, String> = APIUtil.apiClassTokens(
+			//errors enums are in the 0x1XXXX range.
+			{ _, value -> value in 0x10000..0x1FFFF }, null, org.lwjgl.glfw.GLFW::class.java
+		)
+
+		private val errorCallback = GLFWErrorCallback.create { e, d ->
+			error("${ERROR_CODES[e]} - ${GLFWErrorCallback.getDescription(d)}")
+		}
 
 		init {
-			if (!glfwInit()) throw GLFWInitializationException()
+			if (!glfwInit()) throw InitializationException()
 			errorCallback.set()
+			GLFWErrorCallback.createPrint()
 			EventBus.subscribe<ApplicationExitEvent> {
 				errorCallback.free()
 				glfwTerminate()
@@ -34,11 +40,13 @@ open class Window(
 
 	val windowPointer by lazy {
 		val ptr = runOnMain { glfwCreateWindow(width, height, title, NULL, NULL) }.awaitNotNull()
-		if (ptr == NULL) throw WindowCreationException()
+		if (ptr == NULL) throw CreationException()
 		return@lazy ptr
 	}
 
+	@Suppress("unused")
 	var width = width; private set
+	@Suppress("unused")
 	var height = height; private set
 
 	//it isnt guranteed that the title is set as soon as assigned
@@ -70,4 +78,7 @@ open class Window(
 	inner class InitEvent : WindowEvent()
 	inner class FrameLoopEvent(val deltaTime: Double) : WindowEvent()
 	inner class DestroyEvent : WindowEvent()
+
+	class InitializationException : Exception()
+	class CreationException : Exception()
 }
