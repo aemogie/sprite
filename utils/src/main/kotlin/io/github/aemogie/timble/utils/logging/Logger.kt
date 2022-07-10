@@ -1,14 +1,13 @@
 @file:Suppress("unused") //for unused log methods.
 package io.github.aemogie.timble.utils.logging
 
+import io.github.aemogie.timble.utils.ResourceLoader
 import io.github.aemogie.timble.utils.application.ApplicationExitEvent
 import io.github.aemogie.timble.utils.application.ApplicationScope
 import io.github.aemogie.timble.utils.application.EventBus
-import io.github.aemogie.timble.utils.getResourceText
 import io.github.aemogie.timble.utils.logging.Level.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import java.io.PrintStream
 import java.time.Instant
 import java.util.*
@@ -59,12 +58,10 @@ const val CONFIG_PATH: String = "/META-INF/timble-logger.json"
 private var stayAlive = true
 
 fun ApplicationScope.startLogger(replace: Boolean = true) {
-	outputs += getResourceText(CONFIG_PATH) {
+	outputs += ResourceLoader.text(CONFIG_PATH) {
 		Json.parseToJsonElement(it)
-	}.jsonArray.asSequence().map {
-		it.jsonObject
-	}.map {
-		LoggerOutput.of(it)
+	}.jsonArray.map {
+		LoggerOutput(it)
 	}.toList()
 
 	if (replace) replaceStandardOut()

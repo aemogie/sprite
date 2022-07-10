@@ -75,10 +75,10 @@ open class Window(
 		val window = this@Window
 	}
 
-	inner class InitEvent : WindowEvent()
-	inner class FrameLoopEvent(val deltaTime: Double) : WindowEvent()
-	inner class DestroyEvent : WindowEvent()
+	inner class InitEvent internal constructor(): WindowEvent()
+	inner class FrameLoopEvent internal constructor(val deltaTime: Double): WindowEvent()
+	inner class DestroyEvent internal constructor(): WindowEvent()
 
-	class InitializationException : Exception()
-	class CreationException : Exception()
+	class InitializationException internal constructor(): Exception()
+	class CreationException internal constructor(): Exception()
 }

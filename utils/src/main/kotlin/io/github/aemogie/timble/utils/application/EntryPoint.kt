@@ -10,6 +10,7 @@ sealed class ApplicationScope {
 
 private val tasks = mutableListOf<Job<*>>()
 
+//TODO: see if i can change this to a more generalised approach
 fun <T> runOnMain(block: () -> T) = Job(block).also { synchronized(tasks) { tasks += it } }
 
 class Job<T> internal constructor(private val block: () -> T) {
@@ -40,6 +41,7 @@ fun application(run: ApplicationScope.() -> Unit) {
 	)
 	thread(name = "Application") {
 		try {
+			@Suppress("RemoveRedundantQualifierName")
 			ApplicationScope.run()
 			EventBus.fire(ApplicationExitEvent)
 		} catch (any: Exception) {

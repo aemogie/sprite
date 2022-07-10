@@ -1,11 +1,7 @@
 package io.github.aemogie.timble.utils.logging
 
 import io.github.aemogie.timble.utils.console.STD_ERR
-import io.github.aemogie.timble.utils.exitIfNull
-import io.github.aemogie.timble.utils.println
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.System.lineSeparator
@@ -17,39 +13,47 @@ import kotlin.system.exitProcess
 abstract class LoggerOutput internal constructor(config: JsonObject) {
 	internal companion object {
 
-		private val throwableWriter = object : PrintWriter(StringWriter()) {
+		private val THROWABLE_WRITER = object : PrintWriter(StringWriter()) {
 			fun get(throwable: Throwable): String {
 				throwable.printStackTrace(this)
 				val buffer = (out as StringWriter).buffer
 				return synchronized(buffer) {
 					val ret = buffer.toString()
 					buffer.setLength(0)
-					ret
+					return@synchronized ret
 				}
 			}
 		}
 
-		fun of(config: JsonObject): LoggerOutput {
-			val className = config["class"].exitIfNull {
-				STD_ERR.println("Logger config doesn't have a \"class\" value.")
-			}.jsonPrimitive.contentOrNull.exitIfNull {
-				STD_ERR.println("Logger Class can't be `null`.")
+		operator fun invoke(config: JsonElement): LoggerOutput {
+			val className = (config.jsonObject["class"] ?: run {
+				STD_ERR.write("Logger config doesn't have a \"class\" value.${lineSeparator()}".toByteArray())
+				exitProcess(-1)
+			}).jsonPrimitive.contentOrNull ?: run {
+				STD_ERR.write("Logger Class is a non-null value.${lineSeparator()}".toByteArray())
+				exitProcess(-1)
 			}
 
-			return runCatching {
+			val clazz = runCatching {
 				Class.forName(className)
 			}.getOrElse {
-				STD_ERR.println("Logger Class \"$className\" could not be found.")
+				STD_ERR.write("Logger Class \"$className\" could not be found.${lineSeparator()}".toByteArray())
 				exitProcess(-1)
 			}.kotlin.takeIf {
 				it.isSubclassOf(LoggerOutput::class)
-			}.exitIfNull {
-				STD_ERR.println("Logger Class \"$className\" does not extend LoggerOutput.")
-			}.constructors.singleOrNull {
+			} ?: run {
+				STD_ERR.write("Logger Class \"$className\" does not extend LoggerOutput.${lineSeparator()}".toByteArray())
+				exitProcess(-1)
+			}
+
+			val constructor = clazz.constructors.singleOrNull {
 				it.parameters.size == 1 && it.parameters[0].type.javaType == JsonObject::class.java
-			}.exitIfNull {
-				STD_ERR.println("Logger Class \"$className\" does not have a valid constructor.")
-			}.call(config) as LoggerOutput
+			} ?: run {
+				STD_ERR.write("Logger Class \"$className\" does not have a valid constructor.${lineSeparator()}".toByteArray())
+				exitProcess(-1)
+			}
+
+			return constructor.call(config) as LoggerOutput
 		}
 	}
 
@@ -69,7 +73,7 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 		fun LogRecord.getPrintable() = when (content) {
 			null -> "null"
 			is () -> Any? -> (content)().toString()
-			is Throwable -> throwableWriter.get(content)
+			is Throwable -> THROWABLE_WRITER.get(content)
 			is Array<*> -> content.contentToString()
 			else -> content.toString()
 		}
