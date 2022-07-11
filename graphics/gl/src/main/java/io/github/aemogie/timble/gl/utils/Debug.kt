@@ -1,9 +1,8 @@
 package io.github.aemogie.timble.gl.utils
 
-import io.github.aemogie.timble.graphics.Window
 import org.lwjgl.opengl.GL11.*
 
-fun legacyTriangle(event: Window.FrameLoopEvent) {
+fun legacyTriangle() {
 	glBegin(GL_TRIANGLES)
 	glVertex2f(-0.5f, -0.5f)
 	glVertex2f(0.0f, 0.5f)

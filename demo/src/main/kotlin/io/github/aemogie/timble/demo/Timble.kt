@@ -4,7 +4,7 @@ import io.github.aemogie.timble.gl.useOpenGL
 import io.github.aemogie.timble.gl.utils.legacyTriangle
 import io.github.aemogie.timble.graphics.Window
 import io.github.aemogie.timble.graphics.utils.fpsTitle
-import io.github.aemogie.timble.utils.application.application
+import io.github.aemogie.timble.utils.application
 import io.github.aemogie.timble.utils.logging.info
 import io.github.aemogie.timble.utils.logging.startLogger
 
@@ -18,7 +18,7 @@ fun main(vararg args: String) = application {
 	val window = Window(title = "1")
 	window.useOpenGL()
 	window.subscribe(::fpsTitle)
-	window.subscribe(::legacyTriangle)
+	window.subscribe<Window.FrameLoopEvent> { legacyTriangle() }
 	if (args.contains("--scream")) scream(window)
 	window.run().join()
 }
