@@ -5,6 +5,8 @@ import io.github.aemogie.timble.graphics.utils.GLFWInitializationException
 import io.github.aemogie.timble.graphics.utils.WindowCreationException
 import io.github.aemogie.timble.utils.Event
 import io.github.aemogie.timble.utils.EventNode
+import io.github.aemogie.timble.utils.application.ApplicationExitEvent
+import io.github.aemogie.timble.utils.application.EventBus
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -16,16 +18,15 @@ open class Window(
 	title: String = "timble. engine. (by aemogie.)",
 ) : EventNode() {
 	companion object {
-		private val errorCallback = GLFWErrorCallback.create { e: Int, d: Long -> throw GLFWException(e, d) }
+		private val errorCallback = GLFWErrorCallback.create { e, d -> throw GLFWException(e, d) }
 
-		fun init() {
+		init {
 			if (!glfwInit()) throw GLFWInitializationException()
 			errorCallback.set()
-		}
-
-		fun destroy() {
-			errorCallback.free()
-			glfwTerminate()
+			EventBus.subscribe<ApplicationExitEvent> {
+				errorCallback.free()
+				glfwTerminate()
+			}
 		}
 	}
 

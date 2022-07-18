@@ -6,11 +6,11 @@ import org.lwjgl.glfw.GLFW.glfwSwapBuffers
 import org.lwjgl.opengl.GL
 
 fun Window.useOpenGL() {
-	subscribe(Window.InitEvent::class) {
+	subscribe<Window.InitEvent> {
 		glfwMakeContextCurrent(windowPointer)
 		GL.createCapabilities()
 	}
-	subscribe(Window.FrameLoopEvent::class) {
+	subscribe<Window.FrameLoopEvent> {
 		glfwSwapBuffers(windowPointer)
 	}
 }

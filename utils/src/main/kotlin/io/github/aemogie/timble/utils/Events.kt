@@ -15,13 +15,9 @@ abstract class EventNode {
 	protected open fun <T : Event> fire(event: T) = listeners[event::class].forEach { it(event) }
 
 	@Suppress("UNCHECKED_CAST")
-	fun <T : Event> subscribe(clazz: KClass<T>, listener: (T) -> Unit) = listener.also {
-		listeners[clazz] += it as (Event) -> Unit
+	fun <T : Event> subscribe(clazz: KClass<T>, listener: (T) -> Unit) {
+		listeners[clazz] += listener as (Event) -> Unit
 	}
-}
 
-//singleton instance with widened visibility
-@Suppress("unused")
-object EventBus : EventNode() {
-	public override fun <T : Event> fire(event: T) = super.fire(event)
+	inline fun <reified T: Event> subscribe(noinline listener: (T) -> Unit) = subscribe(T::class, listener)
 }
