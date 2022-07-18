@@ -1,31 +1,35 @@
 package io.github.aemogie.timble.utils
 
 import org.intellij.lang.annotations.Language
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.BufferedReader
+import java.io.FileNotFoundException
+import java.io.InputStreamReader
+import java.nio.ByteBuffer
 
-private val clazz = object : Any() {}::class.java.enclosingClass
+val clazz: Class<*> = object : Any() {}::class.java.enclosingClass
 
-private fun <T> file(
-	path: String,
-	map: (InputStream) -> T
-) = map(clazz.getResourceAsStream(path) ?: throw FileNotFoundException(path))
-
-fun <T> getResourceBytes(
+inline fun <reified T> getResourceBytes(
 	@Language("file-reference") path: String,
 	map: (ByteArray) -> T
-): T = file(path) { map(it.readAllBytes()) }
+): T = map((clazz.getResourceAsStream(path) ?: throw FileNotFoundException(path)).readAllBytes())
 
-fun <T> getResourceText(
+inline fun <reified T> getResourceText(
 	@Language("file-reference") path: String,
 	map: (String) -> T
-): T = file(path) { map(String(it.readAllBytes())) }
+): T = map(String((clazz.getResourceAsStream(path) ?: throw FileNotFoundException(path)).readAllBytes()))
 
-fun <T> getResourceStream(
+inline fun <reified T> getResourceStream(
 	@Language("file-reference") path: String,
 	map: (BufferedInputStream) -> T
-): T = file(path) { map(BufferedInputStream(it)) }
+): T = map(BufferedInputStream(clazz.getResourceAsStream(path) ?: throw FileNotFoundException(path)))
 
-fun <T> getResourceReader(
+inline fun <reified T> getResourceReader(
 	@Language("file-reference") path: String,
 	map: (BufferedReader) -> T
-): T = file(path) { map(BufferedReader(InputStreamReader(it))) }
+): T = map(BufferedReader(InputStreamReader(clazz.getResourceAsStream(path) ?: throw FileNotFoundException(path))))
+
+inline fun <reified T> getResourceByteBuffer(
+	@Language("file-reference") path: String,
+	map: (ByteBuffer) -> T
+): T = map(ByteBuffer.wrap((clazz.getResourceAsStream(path) ?: throw FileNotFoundException(path)).readAllBytes()))

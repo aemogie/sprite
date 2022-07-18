@@ -1,10 +1,10 @@
 package io.github.aemogie.timble.utils.console
 
-import com.google.gson.JsonObject
 import io.github.aemogie.timble.utils.console.ANSIModifier.*
 import io.github.aemogie.timble.utils.logging.Level.WARN
 import io.github.aemogie.timble.utils.logging.LogRecord
 import io.github.aemogie.timble.utils.logging.LoggerOutput
+import kotlinx.serialization.json.JsonObject
 
 @Suppress("unused") //used via reflection, from the json config
 class ConsoleLoggerOutput(config: JsonObject) : LoggerOutput(config) {

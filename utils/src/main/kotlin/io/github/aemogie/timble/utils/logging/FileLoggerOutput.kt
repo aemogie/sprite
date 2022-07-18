@@ -1,7 +1,8 @@
 package io.github.aemogie.timble.utils.logging
 
-import com.google.gson.JsonObject
 import io.github.aemogie.timble.utils.console.STD_ERR
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -17,7 +18,7 @@ class FileLoggerOutput(config: JsonObject) : LoggerOutput(config) {
 			STD_ERR.write("Please check your \"${CONFIG_PATH}\"\n".toByteArray())
 			exitProcess(-1)
 		} else it
-	}.asString
+	}.jsonPrimitive.content
 
 	private val file: BufferedWriter = BufferedWriter(FileWriter(File(path).apply {
 		parentFile.apply { if (!exists()) mkdirs() }

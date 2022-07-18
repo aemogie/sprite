@@ -1,9 +1,11 @@
 @file:JvmName("Logger") @file:Suppress("unused") //for unused log methods.
 package io.github.aemogie.timble.utils.logging
 
-import com.google.gson.JsonStreamParser
-import io.github.aemogie.timble.utils.getResourceReader
+import io.github.aemogie.timble.utils.getResourceText
 import io.github.aemogie.timble.utils.logging.Level.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import java.io.PrintStream
 import java.lang.Thread.currentThread
 import java.time.Instant.now
@@ -57,9 +59,10 @@ fun startLogger(replace: Boolean = true): Thread {
 	return thread(start = true, name = "Logger") {
 		if (parent.isDaemon) parent = Thread.getAllStackTraces().keys.single { it.id == 1L }
 
-		outputs += getResourceReader(CONFIG_PATH, ::JsonStreamParser).next().asJsonArray.map {
-			LoggerOutput.of(it.asJsonObject)
+		outputs += getResourceText(CONFIG_PATH, Json::parseToJsonElement).jsonArray.mapNotNull {
+			LoggerOutput.of(it.jsonObject)
 		}
+
 		if (replace) replaceStandardOut()
 
 		//blocking queue doesn't work because it blocks inside while loop

@@ -1,7 +1,9 @@
 package io.github.aemogie.timble.utils.logging
 
-import com.google.gson.JsonObject
 import io.github.aemogie.timble.utils.console.STD_ERR
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import java.lang.System.lineSeparator
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
@@ -10,7 +12,7 @@ import kotlin.system.exitProcess
 
 abstract class LoggerOutput internal constructor(config: JsonObject) {
 	internal companion object {
-		fun of(config: JsonObject) = config["class"]?.asString.let {
+		fun of(config: JsonObject) = config["class"]?.jsonPrimitive?.contentOrNull.let {
 			if (it == null) {
 				STD_ERR.write("Logger config doesn't have a \"class\" value.\n".toByteArray())
 				exitProcess(-1)
@@ -32,7 +34,7 @@ abstract class LoggerOutput internal constructor(config: JsonObject) {
 		}
 	}
 
-	val level = config["level"]?.asString?.uppercase(Locale.ENGLISH).let {
+	val level = config["level"]?.jsonPrimitive?.contentOrNull?.uppercase(Locale.ENGLISH).let {
 		if (it == null) Level.values()[0]
 		else Level.valueOf(it)
 	}
