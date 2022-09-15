@@ -6,14 +6,10 @@ dependencies {
 		api(glfw)
 		api(openal)
 		api(stb)
-		allLwjglNatives(core).forEach(::runtimeOnly)
-		allLwjglNatives(assimp).forEach(::runtimeOnly)
-		allLwjglNatives(glfw).forEach(::runtimeOnly)
-		allLwjglNatives(openal).forEach(::runtimeOnly)
-		allLwjglNatives(stb).forEach(::runtimeOnly)
+		lwjglNatives(core)
+		lwjglNatives(assimp)
+		lwjglNatives(glfw)
+		lwjglNatives(openal)
+		lwjglNatives(stb)
 	}
-}
-
-project.also { parent ->
-	subprojects { dependencies { api(parent) } }
 }

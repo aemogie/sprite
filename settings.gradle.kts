@@ -5,6 +5,4 @@ dependencyResolutionManagement {
 	@Suppress("UnstableApiUsage") repositories { mavenCentral() }
 }
 
-include("utils", "graphics", "ui")
-include("graphics:gl")
-include("demo")
+include("utils", "graphics", "gl", "demo")

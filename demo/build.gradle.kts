@@ -9,6 +9,5 @@ tasks.jar {
 
 dependencies {
 	implementation(projects.utils)
-	implementation(projects.graphics.gl)
-	implementation(projects.ui)
+	implementation(projects.gl)
 }
