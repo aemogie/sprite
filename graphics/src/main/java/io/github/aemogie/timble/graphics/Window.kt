@@ -1,5 +1,7 @@
+/*
 package io.github.aemogie.timble.graphics
 
+import io.github.aemogie.timble.graphics.window.WindowCreationException
 import io.github.aemogie.timble.utils.*
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
@@ -24,9 +26,10 @@ open class Window(
 				error("${ERROR_CODES[e]} - ${GLFWErrorCallback.getDescription(d)}")
 			}
 			val success = runOnMain { glfwInit() }.get()
-			if (!success) throw InitializationException()
+			if (!success) error("") */
+/*throw InitializationException()*//*
+
 			errorCallback.set()
-			GLFWErrorCallback.createPrint()
 			EventBus.subscribe<ApplicationExitEvent> {
 				errorCallback.free()
 				runOnMain { glfwTerminate() }
@@ -36,7 +39,7 @@ open class Window(
 
 	val windowPointer: Long by lazy {
 		val ptr = runOnMain { glfwCreateWindow(width, height, title, NULL, NULL) }.get()
-		if (ptr == NULL) throw CreationException()
+		if (ptr == NULL) throw WindowCreationException()
 		return@lazy ptr
 	}
 
@@ -50,26 +53,18 @@ open class Window(
 	var elapsedTime = 0.0; private set
 
 	fun run() = thread(name = "Window: $title") {
-		fire(InitEvent())
+//		fire(InitEvent())
 		while (!glfwWindowShouldClose(windowPointer)) {
 			runOnMain { glfwPollEvents() }
-			fire(FrameLoopEvent((glfwGetTime() - elapsedTime).also { elapsedTime += it }))
+//			fire(FrameLoopEvent(
+			elapsedTime += (glfwGetTime() - elapsedTime)
+//			))
 		}
-		fire(DestroyEvent())
+//		fire(DestroyEvent())
 		runOnMain {
 			glfwFreeCallbacks(windowPointer)
 			glfwDestroyWindow(windowPointer)
 		}
 	}
-
-	open inner class WindowEvent : Event() {
-		val window = this@Window
-	}
-
-	inner class InitEvent internal constructor() : WindowEvent()
-	inner class FrameLoopEvent internal constructor(val deltaTime: Double) : WindowEvent()
-	inner class DestroyEvent internal constructor() : WindowEvent()
-
-	class InitializationException internal constructor() : Exception()
-	class CreationException internal constructor() : Exception()
 }
+*/

@@ -1,24 +1,34 @@
 package io.github.aemogie.timble.demo
 
-import io.github.aemogie.timble.gl.useOpenGL
+import io.github.aemogie.timble.gl.OpenGLWindow
 import io.github.aemogie.timble.gl.utils.legacyTriangle
-import io.github.aemogie.timble.graphics.Window
-import io.github.aemogie.timble.graphics.utils.fpsTitle
-import io.github.aemogie.timble.utils.application
-import io.github.aemogie.timble.utils.logging.info
-import io.github.aemogie.timble.utils.logging.startLogger
+import io.github.aemogie.timble.graphics.window.FakeWindow
+import io.github.aemogie.timble.graphics.window.Window
+import org.lwjgl.glfw.GLFW.*
+import kotlin.time.Duration
 
-private fun scream(window: Window) {
-	window.subscribe<Window.InitEvent> { info("initializing your window!") }
-	window.subscribe<Window.DestroyEvent> { info("sorry! we have to destroy your window...") }
-}
+fun main() {
+	class DemoWindow : OpenGLWindow(title = "Window") {
+		override fun init() {
+			super.init()
+			glfwSetKeyCallback(ptr) { _, key, _, action, _ ->
+				if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) addChild(DemoWindow())
+			}
+		}
 
-fun main(vararg args: String) = application {
-	startLogger()
-	val window = Window(title = "1")
-	window.useOpenGL()
-	window.subscribe(::fpsTitle)
-	window.subscribe<Window.FrameLoopEvent> { legacyTriangle() }
-	if (args.contains("--scream")) scream(window)
-	window.run().join()
+		override fun loop(lastFrameDuration: Duration) {
+			legacyTriangle()
+			super.loop(lastFrameDuration)
+		}
+	}
+
+	val window = object : FakeWindow() {
+		override fun init() {
+			super.init()
+			addChild(DemoWindow())
+			addChild(DemoWindow())
+			addChild(DemoWindow())
+		}
+	}
+	Window.Main(window).run()
 }

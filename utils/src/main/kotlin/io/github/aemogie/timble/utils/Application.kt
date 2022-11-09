@@ -4,7 +4,7 @@ import java.util.concurrent.FutureTask
 import kotlin.concurrent.thread
 
 
-@Volatile private var stayAlive = true
+/*@Volatile private var stayAlive = true
 private val tasks = ArrayDeque<FutureTask<*>>()
 
 fun application(run: () -> Unit) {
@@ -30,9 +30,9 @@ fun application(run: () -> Unit) {
 
 fun <T> runOnMain(block: () -> T) = FutureTask(block).also {
 	synchronized(tasks) { tasks += it }
-}
+}*/
 
-object ApplicationExitEvent : Event()
+object ApplicationExitEvent : Event
 
 object EventBus : EventNode() {
 	//increase visibility from protected
